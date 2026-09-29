@@ -394,10 +394,18 @@ function shopText(){ const L=shopList(), out=["🛒 Lista de compras — Famíli
     for(const [it,q] of rows){ const g=shopBestGroup(it.name); out.push(`• ${it.name} × ${shopQty(q)}${g?`   (mais barato: ${g.rows[0].market} ${fmtE(g.rows[0].price)}${g.size?" · "+g.size:""})`:""}`); } out.push(""); }
   const sv=shopSavings(); out.push(`Total: ${L.length} ${L.length===1?"artigo":"artigos"}`); if(sv.covered&&sv.save>0) out.push(`Poupança possível escolhendo o mercado mais barato: ${fmtE(sv.save)}`);
   return out.join("\n"); }
+const SHOP_API="https://nossas-compras-api.onrender.com"; let shopSending=false;
+try{ fetch(SHOP_API+"/health",{mode:"no-cors"}).catch(()=>{}); }catch(_){}
 function shopSubject(){ return `Lista de compras — ${fmtDate(todayStr())}`; }
 function shopSend(){ const d=shopData(); if(!shopList().length){ shopToast("A lista está vazia"); return; }
   if(!d.email){ S.shop.tab="settings"; renderShop(true); shopToast("Primeiro escreve o e-mail de destino 📧"); setTimeout(()=>$("sh-email")?.focus(),60); return; }
-  S.shop.modal="send"; renderShop(); }
+  if(shopSending) return; shopSending=true; shopToast("📤 A enviar a lista… pode demorar até 1 minuto");
+  let ctrl=null, tm=0; try{ ctrl=new AbortController(); tm=setTimeout(()=>ctrl.abort(),100000); }catch(_){}
+  const fail=why=>{ S.shop.modal="send"; renderShop(); shopToast(why==="recipient_not_allowed"?"Este e-mail não está autorizado no servidor":"Não consegui enviar sozinho — usa os botões abaixo"); };
+  fetch(SHOP_API+"/send",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:d.email,subject:shopSubject(),text:shopText()}),signal:ctrl?ctrl.signal:undefined})
+    .then(r=>r.json().then(j=>({ok:r.ok&&j&&j.ok,error:j&&j.error}),()=>({ok:false,error:"json"})))
+    .then(res=>{ if(res.ok) shopToast("✅ Lista enviada para "+d.email); else fail(res.error); },()=>fail("net"))
+    .then(()=>{ clearTimeout(tm); shopSending=false; }); }
 function shopSendModal(){ const to=(shopData().email||"").split(/[,;]\s*/).filter(Boolean), txt=shopText();
   return `<div class="sh-modal"><div class="sh-card" role="dialog" aria-modal="true" aria-labelledby="sh-sh">
     <div style="display:flex;align-items:center;gap:10px"><h2 class="sh-h" id="sh-sh" style="margin-right:auto"><span aria-hidden="true">✉️</span>Lista pronta para enviar</h2><button type="button" class="sh-x" data-shmodalx="1" aria-label="Fechar">✕</button></div>
@@ -406,7 +414,7 @@ function shopSendModal(){ const to=(shopData().email||"").split(/[,;]\s*/).filte
     <div class="sh-pills"><a class="sh-big" id="sh-mailto" href="mailto:${esc(to.join(","))}?subject=${encodeURIComponent(shopSubject())}&body=${encodeURIComponent(txt)}" target="_blank" rel="noopener"><span class="e" aria-hidden="true">✉️</span>Abrir o e-mail</a>
       <button type="button" class="sh-big alt" data-shcopy="1"><span class="e" aria-hidden="true">📋</span>Copiar a lista</button>
       <button type="button" class="sh-big alt" data-shcopyto="1"><span class="e" aria-hidden="true">📧</span>Copiar o e-mail</button></div>
-    <p class="sh-meta" style="margin:0">Se a aplicação de e-mail não abrir, toca em <b>Copiar a lista</b> e cola numa mensagem para o endereço acima. Esta página não envia por si própria, por isso confirma sempre que a mensagem saiu.</p>
+    <p class="sh-meta" style="margin:0">O envio automático não funcionou desta vez. Toca em <b>Abrir o e-mail</b>, ou em <b>Copiar a lista</b> e cola numa mensagem para o endereço acima, e confirma que a mensagem saiu.</p>
     <textarea class="sh-in" id="sh-txt" readonly rows="8" style="min-height:160px;padding:12px 16px;font-size:18px" aria-label="Texto da lista">${esc(txt)}</textarea></div></div>`; }
 function copyText(txt,okMsg){ const ok=()=>shopToast(okMsg);
   const fallback=()=>{ const ta=document.createElement("textarea"); ta.value=txt; ta.setAttribute("readonly",""); ta.style.position="fixed"; ta.style.opacity="0"; $("shop").append(ta); ta.select(); let done=false; try{ done=document.execCommand("copy"); }catch(_){} ta.remove();
