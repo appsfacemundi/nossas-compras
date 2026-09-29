@@ -39,11 +39,19 @@ body{background:var(--cream);color:var(--ink);overflow:hidden}
 .sh-close{background:#1f2937!important;color:#fff!important}
 .sh-close .e{font-size:24px!important;font-weight:700}
 .sh-main{flex:1;overflow:auto;padding:20px 18px 130px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-.sh-wrap{max-width:1100px;margin:0 auto;display:grid;gap:18px}
+.sh-wrap{max-width:1100px;margin:0 auto;display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
+#sh-browse{display:grid;gap:18px;min-width:0}#sh-qres{min-width:0}#sh-qres:empty{display:none}
 .sh-cats{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:thin}
 .sh-cat{display:flex;align-items:center;gap:8px;min-height:60px;padding:0 22px;border-radius:999px;border:3px solid var(--c);background:#fff;color:var(--c);font:600 20px/1 var(--kid);white-space:nowrap;flex:none}
 .sh-cat .e{font-size:28px}
 .sh-cat[aria-pressed="true"]{background:var(--c);color:#fff;box-shadow:0 6px 16px color-mix(in srgb,var(--c) 40%,transparent)}
+.sh-search{display:flex;align-items:center;gap:10px;background:#fff;border:3px solid #f1e4d2;border-radius:22px;padding:6px 10px 6px 16px;font-size:24px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+.sh-search:focus-within{border-color:#ff9f43}
+.sh-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:600 22px/1.2 var(--kid);padding:12px 4px;color:#1f2937;-webkit-appearance:none;appearance:none}
+.sh-search .x{border:0;background:#f7f1e8;border-radius:14px;min-width:48px;min-height:48px;font-size:20px;color:#6b7280}
+.sh-hist{display:grid;gap:10px}.sh-hhead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.sh-hhead b{font-size:19px}
+.sh-chips{display:flex;flex-wrap:wrap;gap:6px}.sh-chip{background:#f7f1e8;border-radius:12px;padding:5px 10px;font-size:15px}
+.sh-link.danger{font-size:22px;background:transparent;border:0}
 .sh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
 .sh-tile{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:170px;padding:18px 10px;border-radius:28px;border:4px solid #f1e6d6;background:#fff;color:#1f2937;box-shadow:0 5px 0 #efe3d1;transition:transform .12s,background .15s}
 .sh-tile .e{font-size:68px;line-height:1;filter:drop-shadow(0 3px 2px rgba(0,0,0,.12))}
@@ -329,7 +337,7 @@ function parsePack(s){ if(!s) return null; const m=/^\s*(\d+(?:[.,]\d+)?)\s*(kg|
 const packS=p=>`${qtyS(p.q)} ${p.u}`;
 
 /* ================= state + storage (only on this device) ================= */
-const S={sec:"food",tab:"choose",cat:{food:"basica",school:"basica",clothes:"basica"},pid:{},ptot:{},pfilt:{},psq:"",modal:null,m:{}};
+const S={sec:"food",tab:"choose",cat:{food:"basica",school:"basica",clothes:"basica"},pid:{},ptot:{},pfilt:{},psq:"",q:{},modal:null,m:{}};
 let DATA=null, warned=false;
 function D(){ if(DATA) return DATA; let l=null; try{ l=JSON.parse(localStorage.getItem("nc-shop")||"null"); }catch(_){}
   DATA=(l&&typeof l==="object")?l:{}; migrate(); return DATA; }
@@ -455,7 +463,7 @@ function topHtml(){ const img=`<img class="sh-fam" src="${LOGO}" alt="Família M
   const s=SECS[S.sec], n=S.sec==="food"?rows("food").length:rows(S.sec,pidOf(S.sec)).length, t=S.tab;
   const tab=(k,e,l,badge)=>`<button type="button" class="sh-tab" data-tab="${k}" ${t===k?'aria-current="page"':""}><span class="e" aria-hidden="true">${e}</span>${l}${badge?`<span class="n">${badge}</span>`:""}</button>`;
   return `<div class="sh-brand"><span class="sh-logo" style="background:${s.grad}" aria-hidden="true">${s.e}</span><span><small>Família Manico 360º · Nossas Compras</small><b>${s.name}</b></span></div>${img}
-    <nav class="sh-tabs" aria-label="Painéis">${tab("choose","🛍️","Escolher")}${tab("list","📝","Lista",n)}${tab("prices","💰","Preços")}</nav>`; }
+    <nav class="sh-tabs" aria-label="Painéis">${tab("choose","🛍️","Escolher")}${tab("list","📝","Lista",n)}${tab("prices","💰","Preços")}${tab("sent","📨","Enviadas",sentList(S.sec).length||"")}</nav>`; }
 function peopleStrip(sec,forTotals){ const cur=forTotals?(S.ptot[sec]||"all"):pidOf(sec);
   const chips=people().map((p,i)=>{ const n=rows(sec,p.id).length, info=personLine(sec,p);
     return `<button type="button" class="sh-person" ${forTotals?`data-ptot="${p.id}"`:`data-pid="${p.id}"`} aria-pressed="${cur===p.id}" style="--c:${PCOL[i%PCOL.length]}"><span class="av" aria-hidden="true">${PAV[i%PAV.length]}</span><span><b>${esc(p.name)}</b>${info?`<small>${esc(info)}</small>`:""}</span>${n?`<span class="n">${n}</span>`:""}</button>`; }).join("");
@@ -469,6 +477,28 @@ function basicSet(sec,pid){ const cat=catalog(sec), p=person(pid);
   if(sec==="food") return {name:"Cesta básica",e:"⭐",items:cat.filter(i=>i.basic)};
   if(sec==="school"){ const lv=levelOf(p); return {name:lv?`Pré-lista · ${levelName(lv)}`:"Pré-lista",e:"⭐",items:lv?cat.filter(i=>(i.lv||"").includes(lv)):[],lv}; }
   return {name:"Kits",e:"⭐",items:cat.filter(i=>i.kit)}; }
+/* search across every product of the section, by name or alias, accents ignored */
+function searchHtml(sec,L){ const q=norm(S.q[sec]||""); if(!q) return "";
+  const words=q.split(/\s+/).filter(Boolean);
+  const hits=catalog(sec).filter(it=>{ const hay=norm([it.name,...(it.aliases||[]),catOf(sec,it.cat).name].join(" ")); return words.every(w=>hay.includes(w)); }).slice(0,60);
+  const raw=(S.q[sec]||"").trim();
+  return `<p class="sh-meta" style="margin:0 0 6px">${hits.length?`${hits.length} ${hits.length===1?"resultado":"resultados"} para “${esc(raw)}”`:`Nada encontrado para “${esc(raw)}”`}</p>
+    <div class="sh-grid">${hits.map(it=>tile(sec,it,L)).join("")}<button type="button" class="sh-tile add" data-addq="1"><span class="e" aria-hidden="true">➕</span><span class="t">Juntar “${esc(raw)}”</span></button></div>`; }
+/* sent lists: every list that goes out is kept, per section and person, so it can be sent again or put back in the list */
+function sentList(sec){ return (D().sent||[]).filter(h=>h.sec===sec); }
+function recordSent(sec,pid,pk,ok){ const d=D(), items=Object.entries(listMap(sec,pid)).filter(([,q])=>q>0); const p=pid?person(pid):null;
+  const h={id:"h-"+uidGen(),sec,pid:pid||null,pname:p?p.name:"",at:new Date().toISOString(),ok:!!ok,subject:pk.subject,text:pk.text,payload:pk.payload,n:pk.n,items:Object.fromEntries(items),
+    names:rows(sec,pid).map(([it,q])=>({id:it.id,e:it.e,name:it.name,q}))};
+  save({sent:[h,...(d.sent||[])].slice(0,50)},true); }
+function sentView(){ const sec=S.sec, s=SECS[sec], H=sentList(sec);
+  if(!H.length) return `<section class="sh-card sh-empty"><span class="e" aria-hidden="true">📨</span><h2 class="sh-h" style="justify-content:center">Ainda não foi enviada nenhuma lista</h2><p class="sh-meta" style="margin:0">Cada lista que enviares fica guardada aqui, para a poderes enviar outra vez.</p></section>`;
+  return `<section class="sh-card"><h2 class="sh-h"><span aria-hidden="true">📨</span>Listas enviadas · ${esc(s.name)} <span class="sh-meta">${H.length}</span></h2><p class="sh-meta" style="margin:0">Toca em <b>Enviar de novo</b> para reenviar igual, ou em <b>Pôr na lista</b> para a voltar a usar.</p></section>
+    ${H.map(h=>{ const dt=new Date(h.at), when=`${pad(dt.getDate())}/${pad(dt.getMonth()+1)}/${dt.getFullYear()} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+      const prev=(h.names||[]).slice(0,14).map(x=>`<span class="sh-chip">${x.e} ${esc(x.name)}${x.q>1?` ×${qtyS(x.q)}`:""}</span>`).join("")+((h.names||[]).length>14?`<span class="sh-meta">+${h.names.length-14}</span>`:"");
+      return `<section class="sh-card sh-hist"><div class="sh-hhead"><div><b>${h.pname?`${esc(h.pname)} · `:""}${h.n} ${h.n===1?"artigo":"artigos"}</b><div class="sh-meta">${when}${h.ok?" · ✅ enviada":" · ⚠️ não foi enviada sozinha"}${h.resent?` · reenviada ${esc(h.resent)}`:""}</div></div>
+        <button type="button" class="sh-link danger" data-hdel="${h.id}" aria-label="Apagar do histórico">🗑️</button></div>
+        <div class="sh-chips">${prev}</div>
+        <div class="sh-pills">${big(`data-hsend="${h.id}"`,"✉️","Enviar de novo")}${big(`data-hload="${h.id}"`,"📝",`Pôr na lista${h.pname?" de "+esc(h.pname):""}`,"alt")}</div></section>`; }).join("")}`; }
 function chooseView(){ const sec=S.sec, s=SECS[sec], pid=s.perPerson?pidOf(sec):null, p=pid&&person(pid), L=listMap(sec,pid), cat=S.cat[sec], n=Object.keys(L).length;
   if(s.perPerson&&!p) return `<section class="sh-card sh-empty"><span class="e" aria-hidden="true">👧</span><h2 class="sh-h" style="justify-content:center">Ainda não há pessoas</h2>${big('data-editperson="new"',"➕","Adicionar pessoa")}</section>`;
   const B=basicSet(sec,pid);
@@ -479,10 +509,14 @@ function chooseView(){ const sec=S.sec, s=SECS[sec], pid=s.perPerson?pidOf(sec):
     else if(sec==="clothes"){ head=`${!p.age&&!p.size?agePrompt(sec,p):""}<div class="sh-pills">${KITS.map(k=>big(`data-kit="${k.k}"`,k.e,`Kit ${k.name}`,"kit")).join("")}</div>`; }
     else if(missing) head=big('data-basic="1" style="justify-self:start"',"⭐",`Pôr ${sec==="school"?"a pré-lista":"a cesta básica"} toda na lista (${missing})`,"gold"); }
   else items=catalog(sec).filter(i=>i.cat===cat);
-  return `${s.perPerson?peopleStrip(sec):""}<div class="sh-cats" role="group" aria-label="Categorias">${chips}</div>
+  const q=S.q[sec]||"";
+  return `${s.perPerson?peopleStrip(sec):""}
+    <div class="sh-search"><span aria-hidden="true">🔍</span><input id="sh-q" type="search" data-q-search="1" value="${esc(q)}" placeholder="Procurar ${sec==="food"?"um produto":sec==="school"?"um material":"uma peça"}…" autocomplete="off" enterkeyhint="search" aria-label="Procurar">${q?`<button type="button" class="x" data-qclear="1" aria-label="Limpar pesquisa">✕</button>`:""}</div>
+    <div id="sh-qres">${q?searchHtml(sec,L):""}</div>
+    <div id="sh-browse" ${q?'style="display:none"':""}><div class="sh-cats" role="group" aria-label="Categorias">${chips}</div>
     ${head}
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><p class="sh-meta" style="margin:0;font-size:18px">👆 Toca para pôr na lista${p?` de <b>${esc(p.name)}</b>`:""} · toca outra vez para tirar</p>${n?big('data-clear="1" style="min-height:54px;font-size:18px;padding:0 20px"',"🧹",`Limpar seleção (${n})`,"warn"):""}</div>
-    <div class="sh-grid">${items.map(it=>tile(sec,it,L)).join("")}<button type="button" class="sh-tile add" data-add="1"><span class="e" aria-hidden="true">➕</span><span class="t">Outro artigo</span></button></div>
+    <div class="sh-grid">${items.map(it=>tile(sec,it,L)).join("")}<button type="button" class="sh-tile add" data-add="1"><span class="e" aria-hidden="true">➕</span><span class="t">Outro artigo</span></button></div></div>
     <div class="sh-bar">${big('data-tab="list"',"📝",`Ver a lista${p?" de "+esc(p.name):""}${n?` (${n})`:""}`)}</div>`; }
 function sizeSelect(pid,it){ const opts=it.sz==="c"?SIZES_C:SIZES_R, cur=sizeFor(pid,it);
   return `<label class="sh-szl">Tamanho <select class="sh-sel2" data-size="${esc(pid)}|${esc(it.id)}"><option value="">—</option>${opts.map(o=>`<option ${o===cur?"selected":""}>${o}</option>`).join("")}${cur&&!opts.includes(cur)?`<option selected>${esc(cur)}</option>`:""}</select></label>`; }
@@ -575,7 +609,7 @@ const closeModal=()=>{ S.modal=null; S.m={}; render(); };
 function render(resetScroll){ const main=$("sh-main"), y=main.scrollTop, tw=$("sh-tw"), twx=tw?tw.scrollLeft:0, twy=tw?tw.scrollTop:0;
   const shop=$("shop");
   $("sh-side").innerHTML=sideHtml(); $("sh-top").innerHTML=topHtml();
-  const t=S.tab, v=t==="settings"?settingsView():t==="list"?listView():t==="prices"?pricesView():chooseView();
+  const t=S.tab, v=t==="settings"?settingsView():t==="list"?listView():t==="prices"?pricesView():t==="sent"?sentView():chooseView();
   main.innerHTML=`<div class="sh-wrap">${v}</div>`; main.scrollTop=resetScroll?0:y;
   const tw2=$("sh-tw"); if(tw2&&!resetScroll){ tw2.scrollLeft=twx; tw2.scrollTop=twy; }
   shop.querySelector(".sh-modal:not(.sh-yn)")?.remove(); if(S.modal) shop.insertAdjacentHTML("beforeend",modalHtml());
@@ -646,7 +680,7 @@ async function sendLists(all){ const d=D(), sec=S.sec; if(sending) return;
   const targets=SECS[sec].perPerson?(all?people().filter(p=>rows(sec,p.id).length).map(p=>p.id):[pidOf(sec)]):[null];
   const packs=targets.map(pid=>mailPack(sec,pid)).filter(p=>p.n); if(!packs.length){ toast("A lista está vazia"); return; }
   sending=true; toast(`📤 A enviar${packs.length>1?` ${packs.length} listas`:" a lista"}… pode demorar até 1 minuto`); let ok=0;
-  for(const pk of packs){ const res=await postMail(pk); if(res.ok) ok++; else { sending=false; S.modal="send"; S.m={subject:pk.subject,text:pk.text,why:res.error}; render();
+  for(let i=0;i<packs.length;i++){ const pk=packs[i], res=await postMail(pk); recordSent(sec,targets.filter(pid=>mailPack(sec,pid).n)[i]??null,pk,res.ok); if(res.ok) ok++; else { sending=false; S.modal="send"; S.m={subject:pk.subject,text:pk.text,why:res.error}; render();
       toast(res.error==="recipient_not_allowed"?"Este e-mail não está autorizado no servidor":"Não consegui enviar sozinho — usa os botões abaixo"); return; } }
   sending=false; toast(`✅ ${ok>1?ok+" listas enviadas":"Lista enviada"} para ${d.email}`); }
 function copyText(txt,okMsg){ const ok=()=>toast(okMsg);
@@ -680,6 +714,17 @@ async function onClick(ev){ const t=ev.target, g=a=>t.closest(`[${a}]`); let x;
   if(x=g("data-pfilt")){ S.pfilt[S.sec]=x.dataset.pfilt; render(); return; }
   if(x=g("data-pricefor")){ S.tab="prices"; S.pfilt[S.sec]="all"; S.psq=x.dataset.pricefor; render(true); return; }
   if(x=g("data-send")){ sendLists(x.dataset.send==="all"); return; }
+  if(g("data-qclear")){ S.q[S.sec]=""; render(); setTimeout(()=>$("sh-q")?.focus(),30); return; }
+  if(g("data-addq")){ openModal("add",{q:"1",name:(S.q[S.sec]||"").trim()}); setTimeout(()=>{ const i=$("sh-aname"); if(i){ i.value=S.m.name; i.focus(); const pv=$("sh-apv"); if(pv) pv.innerHTML=addPreview(); } },40); return; }
+  if(x=g("data-hsend")){ const h=(D().sent||[]).find(r=>r.id===x.dataset.hsend); if(!h||sending) return; if(!D().email){ S.tab="settings"; render(true); toast("Primeiro escreve o e-mail de destino 📧"); return; }
+    sending=true; toast("📤 A enviar de novo… pode demorar até 1 minuto"); const res=await postMail({subject:h.subject,text:h.text,payload:h.payload}); sending=false;
+    if(res.ok){ const dt=new Date(); save({sent:(D().sent||[]).map(r=>r.id===h.id?{...r,ok:true,resent:`${pad(dt.getDate())}/${pad(dt.getMonth()+1)} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`}:r)}); toast(`✅ Lista enviada de novo para ${D().email}`); }
+    else { S.modal="send"; S.m={subject:h.subject,text:h.text,why:res.error}; render(); toast("Não consegui enviar sozinho — usa os botões abaixo"); } return; }
+  if(x=g("data-hload")){ const h=(D().sent||[]).find(r=>r.id===x.dataset.hload); if(!h) return; const cur=listMap(h.sec,h.pid||undefined), n=Object.keys(cur).length;
+    if(n&&!(await askYesNo(`A lista${h.pname?" de "+h.pname:""} já tem ${n} ${n===1?"artigo":"artigos"}. Substituir pela lista enviada?`,"Sim, substituir"))) return;
+    if(h.pid&&!person(h.pid)){ toast("Essa pessoa já não existe"); return; }
+    if(h.pid) S.pid[h.sec]=h.pid; setList(h.sec,{...(h.items||{})},h.pid||undefined,true); S.tab="list"; render(true); toast("📝 Lista reposta"); return; }
+  if(x=g("data-hdel")){ if(!(await askYesNo("Apagar esta lista do histórico de enviadas?","Sim, apagar"))) return; save({sent:(D().sent||[]).filter(r=>r.id!==x.dataset.hdel)}); toast("Apagada do histórico"); return; }
   if(g("data-copy")){ const sec=S.sec; copyText(mailPack(sec,SECS[sec].perPerson?pidOf(sec):null).text,"📋 Lista copiada"); return; }
   if(g("data-copytext")){ copyText(S.m.text||"","📋 Lista copiada"); return; }
   if(g("data-clear")){ const sec=S.sec, p=SECS[sec].perPerson?person(pidOf(sec)):null; if(!(await askYesNo(`Apagar todos os artigos da lista${p?" de "+p.name:""}?`,"Sim, limpar"))) return; setList(sec,{}); toast("Lista limpa 🧹"); return; }
@@ -696,6 +741,7 @@ function onInput(ev){ const t=ev.target;
   if(t.dataset.mp){ S.m[t.dataset.mp]=t.value; return; }
   if(t.dataset.mm){ S.m.name=t.value; return; }
   if(t.dataset.email){ S.emailDraft=t.value; return; }
+  if(t.dataset.qSearch){ const sec=S.sec; S.q[sec]=t.value; const has=!!t.value.trim(); const r=$("sh-qres"), b=$("sh-browse"); if(r) r.innerHTML=has?searchHtml(sec,listMap(sec,SECS[sec].perPerson?pidOf(sec):null)):""; if(b) b.style.display=has?"none":""; return; }
   if(t.dataset.psearch){ S.psq=t.value; const q=norm(t.value); document.querySelectorAll("#sh-tw tr[data-row]").forEach(r=>{ r.style.display=!q||r.dataset.name.includes(q)?"":"none"; }); return; } }
 function onChange(ev){ const t=ev.target, sec=S.sec;
   if(t.dataset.price!==undefined&&t.dataset.m){ const raw=t.value.trim(), v=raw?parseNumber(raw):0;
