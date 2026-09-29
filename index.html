@@ -489,10 +489,16 @@ function sentList(sec){ return (D().sent||[]).filter(h=>h.sec===sec); }
 function recordSent(sec,pid,pk,ok){ const d=D(), items=Object.entries(listMap(sec,pid)).filter(([,q])=>q>0); const p=pid?person(pid):null;
   const h={id:"h-"+uidGen(),sec,pid:pid||null,pname:p?p.name:"",at:new Date().toISOString(),ok:!!ok,subject:pk.subject,text:pk.text,payload:pk.payload,n:pk.n,items:Object.fromEntries(items),
     names:rows(sec,pid).map(([it,q])=>({id:it.id,e:it.e,name:it.name,q}))};
-  save({sent:[h,...(d.sent||[])].slice(0,50)},true); }
+  const day=h.at.slice(0,10), key=JSON.stringify(Object.entries(h.items).sort());
+  const rest=(d.sent||[]).filter(r=>!(r.sec===sec&&(r.pid||null)===(pid||null)&&r.at.slice(0,10)===day&&JSON.stringify(Object.entries(r.items||{}).sort())===key));
+  save({sent:[h,...rest].slice(0,50)},true); }
+/* one tap: keep every list that is on the tablet right now as sent today (one per section and person, never twice) */
+function saveTodayLists(){ let n=0; for(const sec of ["food","school","clothes"]){ const targets=SECS[sec].perPerson?people().map(p=>p.id):[null];
+    for(const pid of targets){ const pk=mailPack(sec,pid); if(!pk.n) continue; const before=(D().sent||[]).length; recordSent(sec,pid,pk,true); if((D().sent||[]).length>before) n++; } }
+  render(); toast(n?`📥 ${n} ${n===1?"lista guardada":"listas guardadas"} como enviadas hoje`:"Essas listas já estavam guardadas"); }
 function sentView(){ const sec=S.sec, s=SECS[sec], H=sentList(sec);
-  if(!H.length) return `<section class="sh-card sh-empty"><span class="e" aria-hidden="true">📨</span><h2 class="sh-h" style="justify-content:center">Ainda não foi enviada nenhuma lista</h2><p class="sh-meta" style="margin:0">Cada lista que enviares fica guardada aqui, para a poderes enviar outra vez.</p></section>`;
-  return `<section class="sh-card"><h2 class="sh-h"><span aria-hidden="true">📨</span>Listas enviadas · ${esc(s.name)} <span class="sh-meta">${H.length}</span></h2><p class="sh-meta" style="margin:0">Toca em <b>Enviar de novo</b> para reenviar igual, ou em <b>Pôr na lista</b> para a voltar a usar.</p></section>
+  if(!H.length) return `<section class="sh-card sh-empty"><span class="e" aria-hidden="true">📨</span><h2 class="sh-h" style="justify-content:center">Ainda não foi enviada nenhuma lista</h2><p class="sh-meta" style="margin:0">Cada lista que enviares fica guardada aqui, para a poderes enviar outra vez.</p><div class="sh-pills" style="justify-content:center">${big('data-savetoday="1"',"📥","Guardar as listas de hoje")}</div></section>`;
+  return `<section class="sh-card"><h2 class="sh-h"><span aria-hidden="true">📨</span>Listas enviadas · ${esc(s.name)} <span class="sh-meta">${H.length}</span></h2><p class="sh-meta" style="margin:0">Toca em <b>Enviar de novo</b> para reenviar igual, ou em <b>Pôr na lista</b> para a voltar a usar.</p><div class="sh-pills">${big('data-savetoday="1"',"📥","Guardar as listas de hoje","alt")}</div></section>
     ${H.map(h=>{ const dt=new Date(h.at), when=`${pad(dt.getDate())}/${pad(dt.getMonth()+1)}/${dt.getFullYear()} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
       const prev=(h.names||[]).slice(0,14).map(x=>`<span class="sh-chip">${x.e} ${esc(x.name)}${x.q>1?` ×${qtyS(x.q)}`:""}</span>`).join("")+((h.names||[]).length>14?`<span class="sh-meta">+${h.names.length-14}</span>`:"");
       return `<section class="sh-card sh-hist"><div class="sh-hhead"><div><b>${h.pname?`${esc(h.pname)} · `:""}${h.n} ${h.n===1?"artigo":"artigos"}</b><div class="sh-meta">${when}${h.ok?" · ✅ enviada":" · ⚠️ não foi enviada sozinha"}${h.resent?` · reenviada ${esc(h.resent)}`:""}</div></div>
@@ -714,6 +720,7 @@ async function onClick(ev){ const t=ev.target, g=a=>t.closest(`[${a}]`); let x;
   if(x=g("data-pfilt")){ S.pfilt[S.sec]=x.dataset.pfilt; render(); return; }
   if(x=g("data-pricefor")){ S.tab="prices"; S.pfilt[S.sec]="all"; S.psq=x.dataset.pricefor; render(true); return; }
   if(x=g("data-send")){ sendLists(x.dataset.send==="all"); return; }
+  if(g("data-savetoday")){ saveTodayLists(); return; }
   if(g("data-qclear")){ S.q[S.sec]=""; render(); setTimeout(()=>$("sh-q")?.focus(),30); return; }
   if(g("data-addq")){ openModal("add",{q:"1",name:(S.q[S.sec]||"").trim()}); setTimeout(()=>{ const i=$("sh-aname"); if(i){ i.value=S.m.name; i.focus(); const pv=$("sh-apv"); if(pv) pv.innerHTML=addPreview(); } },40); return; }
   if(x=g("data-hsend")){ const h=(D().sent||[]).find(r=>r.id===x.dataset.hsend); if(!h||sending) return; if(!D().email){ S.tab="settings"; render(true); toast("Primeiro escreve o e-mail de destino 📧"); return; }
