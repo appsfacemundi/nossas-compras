@@ -180,8 +180,8 @@ const SHOP_BASIC={k:"basica",name:"Cesta básica",e:"⭐",c:"#b45309",s:"#fef3c7
 const SHOP_BUILTIN=[
   ["maca","Maçãs","🍎","fruta",1,["maca","macas"]],["banana","Bananas","🍌","fruta",1],["laranja","Laranjas","🍊","fruta"],["pera","Peras","🍐","fruta"],["uvas","Uvas","🍇","fruta"],["morangos","Morangos","🍓","fruta"],["melancia","Melancia","🍉","fruta"],["limao","Limões","🍋","fruta",0,["limao","limoes"]],["kiwi","Kiwis","🥝","fruta"],["ananas","Ananás","🍍","fruta",0,["abacaxi"]],
   ["tomate","Tomates","🍅","fruta",1],["alface","Alface","🥬","fruta",1],["cenoura","Cenouras","🥕","fruta",1],["batata","Batatas","🥔","fruta",1],["cebola","Cebolas","🧅","fruta"],["alho","Alho","🧄","fruta"],["brocolos","Brócolos","🥦","fruta"],["pepino","Pepino","🥒","fruta"],["pimento","Pimentos","🫑","fruta"],["abacate","Abacate","🥑","fruta"],
-  ["pao","Pão","🍞","frescos",1,["pao","paes"]],["leite","Leite","🥛","frescos",1],["ovos","Ovos","🥚","frescos",1],["queijo","Queijo","🧀","frescos"],["iogurte","Iogurtes","🥣","frescos",0,["iogurte","iogurtes"]],["manteiga","Manteiga","🧈","frescos"],["fiambre","Fiambre","🥓","frescos"],["frango","Frango","🍗","frescos"],["carne","Carne","🥩","frescos"],["peixe","Peixe","🐟","frescos"],["sumo","Sumo","🧃","frescos",0,["sumos"]],
-  ["arroz","Arroz","🍚","despensa",1],["massa","Massa","🍝","despensa",1,["massas","esparguete"]],["azeite","Azeite","🫒","despensa",1],["feijao","Feijão","🫘","despensa",0,["feijao","feijoes"]],["atum","Atum","🥫","despensa"],["farinha","Farinha","🌾","despensa"],["acucar","Açúcar","🍬","despensa"],["sal","Sal","🧂","despensa"],["cafe","Café","☕","despensa"],["cha","Chá","🍵","despensa"],["cereais","Cereais","🌽","despensa"],["bolachas","Bolachas","🍪","despensa",0,["bolacha","biscoitos"]],["chocolate","Chocolate","🍫","despensa"],["mel","Mel","🍯","despensa"],["agua","Água","💧","despensa",0,["agua","aguas"]],
+  ["pao","Pão","🍞","frescos",1,["pao","paes"]],["leite","Leite","🥛","frescos",1],["ovos","Ovos","🥚","frescos",1],["queijo","Queijo","🧀","frescos"],["iogurte","Iogurtes","🍨","frescos",0,["iogurte","iogurtes"]],["manteiga","Manteiga","🧈","frescos"],["fiambre","Fiambre","🥓","frescos"],["frango","Frango","🍗","frescos"],["carne","Carne","🥩","frescos"],["peixe","Peixe","🐟","frescos"],["sumo","Sumo","🧃","frescos",0,["sumos"]],
+  ["arroz","Arroz","🍚","despensa",1],["massa","Massa","🍝","despensa",1,["massas","esparguete"]],["azeite","Azeite","🫒","despensa",1],["feijao","Feijão","🫘","despensa",0,["feijao","feijoes"]],["atum","Atum","🥫","despensa"],["farinha","Farinha","🌾","despensa"],["acucar","Açúcar","🍬","despensa"],["sal","Sal","🧂","despensa"],["cafe","Café","☕","despensa"],["cha","Chá","🍵","despensa"],["cereais","Cereais","🥣","despensa"],["bolachas","Bolachas","🍪","despensa",0,["bolacha","biscoitos"]],["chocolate","Chocolate","🍫","despensa"],["mel","Mel","🍯","despensa"],["agua","Água","💧","despensa",0,["agua","aguas"]],
   ["papel","Papel higiénico","🧻","casa",1,["papel higienico","papel wc","papel"]],["detergente","Detergente da roupa","🧺","casa",1,["detergente","detergente roupa","detergente para roupa"]],["loica","Detergente da loiça","🍽️","casa",0,["detergente loica","detergente da louca","detergente loiça"]],["lixo","Sacos do lixo","🗑️","casa",1,["sacos lixo","saco do lixo","sacos de lixo","saco lixo"]],["esponjas","Esponjas","🧽","casa",0,["esponja"]],["sabonete","Sabonete","🧼","casa"],["pasta","Pasta de dentes","🪥","casa",0,["pasta dentes","pasta dentifrica"]],["champo","Champô","🧴","casa",0,["champo","shampoo"]],["lixivia","Lixívia","🧪","casa"],["pilhas","Pilhas","🔋","casa",0,["pilha"]],["lampadas","Lâmpadas","💡","casa",0,["lampada"]]
 ].map(([id,name,e,cat,basic,aliases])=>({id,name,e,cat,basic:!!basic,aliases:aliases||[]}));
 const SHOP_MARKETS=["Mercadona","Pingo Doce","Aldi","Continente","Lidl","Outro"];
@@ -189,7 +189,20 @@ const SHOP_KW={
   fruta:["fruta","legume","maca","banan","laranj","pera","uva","morang","melanc","melao","limao","limoe","kiwi","ananas","abacax","manga","pessego","ameixa","cereja","tomat","alface","couve","cenour","batat","cebol","alho","brocol","pepin","piment","abacate","espinafre","curgete","abobora","cogumel","milho","salsa","coentro","nabo","beterraba","coco","framboesa","mirtilo","tangerina","clementina","figo","romã","roma","feijao verde","ervilha","rucula","agriao"],
   frescos:["leite","ovo","queij","iogurt","mantei","fiambre","presunto","chouri","salsich","frango","peru","carne","bife","porco","vaca","novilho","peixe","bacalhau","pescada","salmao","dourada","robalo","sardinh","camarao","polvo","lula","natas","pao","paes","broa","baguete","sumo","gelado","pizza","requeijao","mozzarella","hamburguer","croissant","bolo","tarte"],
   casa:["detergent","lixiv","papel","guardanap","sabao","sabonet","champo","shampoo","gel de banho","gel banho","esponja","lixo","pilha","lampad","pasta de dentes","escova","fralda","toalhit","amaciador","vassoura","limpa","desinfet","algodao","cotonete","desodoriz","creme","lenco","rolo de cozinha","pano","luvas","aluminio","pelicula","vela","insectic","ambientador"]};
-const SHOP_EMOJI=[["pizza","🍕"],["gelado","🍦"],["bolo","🍰"],["tarte","🥧"],["croissant","🥐"],["baguete","🥖"],["cerveja","🍺"],["vinho","🍷"],["refrigerante","🥤"],["coca","🥤"],["salsich","🌭"],["hamburguer","🍔"],["cogumel","🍄"],["milho","🌽"],["coco","🥥"],["pessego","🍑"],["cereja","🍒"],["manga","🥭"],["melao","🍈"],["batata doce","🍠"],["camarao","🦐"],["polvo","🐙"],["lula","🦑"],["bacalhau","🐟"],["pescada","🐟"],["salmao","🐟"],["sardinh","🐟"],["presunto","🥓"],["chouri","🌭"],["natas","🥛"],["mirtilo","🫐"],["framboesa","🍓"],["tangerina","🍊"],["clementina","🍊"],["couve","🥬"],["espinafre","🥬"],["ervilha","🫛"],["fralda","👶"],["toalhit","🧻"],["guardanap","🧻"],["lenco","🤧"],["rolo","🧻"],["gel","🧴"],["creme","🧴"],["desodoriz","🧴"],["amaciador","🧴"],["vassoura","🧹"],["escova","🪥"],["luvas","🧤"],["vela","🕯️"],["bebe","🍼"],["biberao","🍼"],["cao","🦴"],["gato","🐱"],["pipocas","🍿"],["batatas fritas","🍟"],["noodles","🍜"],["sopa","🥣"],["pickles","🥒"],["azeitona","🫒"],["amendoim","🥜"],["noz","🌰"],["pao de forma","🍞"],["tosta","🍞"]];
+const SHOP_EMOJI=[
+["manteiga de amendoim","🥜"],["pasta de amendoim","🥜"],["amendoim","🥜"],["amendoas","🌰"],["noz","🌰"],["nozes","🌰"],["avelas","🌰"],["castanha","🌰"],["pistachio","🥜"],["caju","🥜"],["frutos secos","🥜"],
+["pasta de dentes","🪥"],["escova de dentes","🪥"],["fio dentario","🪥"],["elixir","🪥"],["dentifrico","🪥"],
+["leite de coco","🥥"],["leite de aveia","🥛"],["leite de soja","🥛"],["leite de amendoa","🥛"],["leite achocolatado","🍫"],["leite condensado","🥛"],["leite em po","🥛"],
+["molho de tomate","🥫"],["polpa de tomate","🥫"],["tomate pelado","🥫"],["concentrado de tomate","🥫"],["ketchup","🍅"],["maionese","🥫"],["mostarda","🌭"],["molho","🥫"],["conserva","🥫"],["lata","🥫"],["sardinhas","🐟"],
+["sumo de laranja","🍊"],["sumo","🧃"],["nectar","🧃"],["refrigerante","🥤"],["coca cola","🥤"],["fanta","🥤"],["sumol","🥤"],["ice tea","🥤"],["cerveja","🍺"],["vinho","🍷"],["espumante","🍾"],["champanhe","🍾"],["whisky","🥃"],["gin","🍸"],["vodka","🍸"],["agua com gas","💧"],["agua","💧"],
+["cafe","☕"],["capsulas","☕"],["cha","🍵"],["chocolate","🍫"],["cacau","🍫"],["nutella","🍫"],["bolachas","🍪"],["bolacha","🍪"],["biscoitos","🍪"],["cookies","🍪"],["bolo","🍰"],["tarte","🥧"],["croissant","🥐"],["donut","🍩"],["gelado","🍦"],["pastel","🥧"],["pudim","🍮"],["gelatina","🍮"],["natas","🥛"],["nata","🥛"],
+["mel","🍯"],["compota","🍯"],["doce","🍯"],["geleia","🍯"],["marmelada","🍯"],["acucar","🍬"],["adocante","🍬"],["rebucados","🍬"],["gomas","🍬"],["balas","🍬"],["sal","🧂"],["pimenta","🌶️"],["piri piri","🌶️"],["colorau","🌶️"],["oregaos","🌿"],["louro","🌿"],["ervas","🌿"],["canela","🌿"],["especiarias","🌶️"],["caldo","🍲"],["sopa","🍲"],["vinagre","🍶"],["azeite","🫒"],["azeitonas","🫒"],["azeitona","🫒"],["oleo","🫒"],
+["arroz","🍚"],["massa","🍝"],["esparguete","🍝"],["macarrao","🍝"],["lasanha","🍝"],["noodles","🍜"],["cuscuz","🍚"],["quinoa","🌾"],["aveia","🥣"],["cereais","🥣"],["granola","🥣"],["muesli","🥣"],["farinha","🌾"],["fermento","🌾"],["pao ralado","🍞"],["pao de forma","🍞"],["pao","🍞"],["baguete","🥖"],["tostas","🍞"],["torradas","🍞"],["wraps","🌯"],["tortilhas","🌯"],["pizza","🍕"],["hamburguer","🍔"],["salsichas","🌭"],["salsicha","🌭"],["cachorro","🌭"],
+["feijao","🫘"],["grao de bico","🫘"],["lentilhas","🫘"],["ervilhas","🫛"],["ervilha","🫛"],["favas","🫛"],["milho","🌽"],["pipocas","🍿"],["batatas fritas","🍟"],["batata frita","🍟"],["batata doce","🍠"],["batatas","🥔"],["batata","🥔"],["cenouras","🥕"],["cenoura","🥕"],["tomates","🍅"],["tomate","🍅"],["alface","🥬"],["couve","🥬"],["espinafres","🥬"],["espinafre","🥬"],["rucula","🥬"],["salada","🥗"],["cebola","🧅"],["alho","🧄"],["pepino","🥒"],["pickles","🥒"],["curgete","🥒"],["beringela","🍆"],["pimento","🫑"],["brocolos","🥦"],["couve flor","🥦"],["abobora","🎃"],["cogumelos","🍄"],["cogumelo","🍄"],["abacate","🥑"],["gengibre","🫚"],["beterraba","🥕"],
+["macas","🍎"],["maca","🍎"],["bananas","🍌"],["banana","🍌"],["laranjas","🍊"],["laranja","🍊"],["tangerina","🍊"],["clementina","🍊"],["limao","🍋"],["limoes","🍋"],["peras","🍐"],["pera","🍐"],["uvas","🍇"],["morangos","🍓"],["framboesas","🍓"],["framboesa","🍓"],["mirtilos","🫐"],["mirtilo","🫐"],["melancia","🍉"],["melao","🍈"],["kiwi","🥝"],["ananas","🍍"],["manga","🥭"],["pessego","🍑"],["ameixa","🍑"],["cerejas","🍒"],["cereja","🍒"],["coco","🥥"],["figo","🫒"],["fruta","🍎"],
+["ovos","🥚"],["ovo","🥚"],["queijo","🧀"],["mozzarella","🧀"],["requeijao","🧀"],["iogurtes","🍨"],["iogurte","🍨"],["manteiga","🧈"],["margarina","🧈"],["leite","🥛"],
+["fiambre","🥓"],["presunto","🥓"],["bacon","🥓"],["chourico","🌭"],["salame","🥓"],["frango","🍗"],["peru","🍗"],["carne","🥩"],["bife","🥩"],["vaca","🥩"],["novilho","🥩"],["porco","🥩"],["borrego","🥩"],["costeletas","🥩"],["carne picada","🥩"],["peixe","🐟"],["bacalhau","🐟"],["pescada","🐟"],["salmao","🐟"],["atum","🥫"],["dourada","🐟"],["robalo","🐟"],["camarao","🦐"],["gambas","🦐"],["polvo","🐙"],["lula","🦑"],["mexilhao","🦪"],["amêijoas","🦪"],["ameijoas","🦪"],["tofu","🧈"],
+["papel higienico","🧻"],["papel de cozinha","🧻"],["rolo de cozinha","🧻"],["guardanapos","🧻"],["toalhitas","🧻"],["lencos","🤧"],["lenco","🤧"],["papel de aluminio","🧻"],["pelicula","🧻"],["sacos do lixo","🗑️"],["saco do lixo","🗑️"],["sacos","🗑️"],["detergente da loica","🍽️"],["detergente loica","🍽️"],["lava loica","🍽️"],["pastilhas","🍽️"],["detergente","🧺"],["amaciador","🧺"],["lixivia","🧪"],["desinfetante","🧪"],["multiusos","🧴"],["limpa vidros","🧴"],["desengordurante","🧴"],["esponjas","🧽"],["esponja","🧽"],["pano","🧽"],["vassoura","🧹"],["esfregona","🧹"],["balde","🪣"],["luvas","🧤"],["sabonete","🧼"],["sabao","🧼"],["gel de banho","🧴"],["champo","🧴"],["condicionador","🧴"],["creme","🧴"],["desodorizante","🧴"],["desodorizante","🧴"],["perfume","🧴"],["protetor solar","🧴"],["shampoo","🧴"],["cotonetes","🪥"],["algodao","🪥"],["ambientador","🌸"],["insecticida","🪰"],["vela","🕯️"],["velas","🕯️"],["pilhas","🔋"],["pilha","🔋"],["lampadas","💡"],["lampada","💡"],["fralda","👶"],["fraldas","👶"],["biberao","🍼"],["papa","🍼"],["racao","🦴"],["areia","🐱"],["gato","🐱"],["cao","🐶"],["cachorro","🐶"],["ratos","🐭"]];
 
 S.shop={tab:"choose",cat:"basica",modal:null,pf:{},mkt:"Mercadona"};
 let shopLocal=null;
@@ -209,12 +222,19 @@ function shopSave(patch){
   if(!ok&&!shopWarned){ shopWarned=true; shopToast("Este aparelho não deixa guardar a lista: perde-se ao fechar a página"); }
   if($("shop")) renderShop();
 }
-function shopCatalog(){ return [...SHOP_BUILTIN,...(shopData().custom||[]).map(c=>({...c,aliases:[],custom:true}))]; }
+function shopCatalog(){ return [...SHOP_BUILTIN,...(shopData().custom||[]).map(c=>({...c,e:c.eManual?c.e:shopGuessEmoji(c.name,c.cat),aliases:[],custom:true}))]; }
 function shopFind(name){ return shopCatalog().find(it=>[it.name,...it.aliases].some(n=>shopSame(n,name)))||null; }
 function shopList(){ const list=shopData().list||{}, cat=shopCatalog(), order=SHOP_CATS.map(c=>c.k);
   return Object.entries(list).map(([id,q])=>[cat.find(i=>i.id===id),+q]).filter(([it,q])=>it&&q>0).sort((a,b)=>order.indexOf(a[0].cat)-order.indexOf(b[0].cat)||a[0].name.localeCompare(b[0].name,"pt")); }
-function shopGuessCat(name){ const n=shopNorm(name); for(const k of ["casa","frescos","fruta"]) if(SHOP_KW[k].some(w=>n.includes(shopNorm(w)))) return k; return "despensa"; }
-function shopGuessEmoji(name,cat){ const n=shopNorm(name); const hit=SHOP_EMOJI.find(([w])=>n.includes(w)); if(hit) return hit[1]; const b=SHOP_BUILTIN.find(it=>n.includes(shopNorm(it.name).split(" ")[0].replace(/s$/,""))); if(b) return b.e; return shopCat(cat).e; }
+const SHOP_CATP=[["manteiga de amendoim","despensa"],["pasta de amendoim","despensa"],["molho de tomate","despensa"],["polpa de tomate","despensa"],["tomate pelado","despensa"],["concentrado de tomate","despensa"],["leite de coco","despensa"],["leite condensado","despensa"],["leite em po","despensa"],["leite achocolatado","despensa"],["leite de aveia","despensa"],["leite de soja","despensa"],["leite de amendoa","despensa"],["pasta de dentes","casa"],["salada","fruta"],["sumo de laranja","frescos"],["papel de aluminio","casa"],["gel de banho","casa"],["escova de dentes","casa"],["caldo","despensa"],["sopa","despensa"],["conserva","despensa"],["ketchup","despensa"],["maionese","despensa"],["mostarda","despensa"],["atum","despensa"],["sardinhas","despensa"],["batatas fritas","despensa"],["batata frita","despensa"],["pao ralado","despensa"],["azeitonas","despensa"],["azeitona","despensa"],["cerveja","despensa"],["vinho","despensa"],["refrigerante","despensa"],["ovos de","frescos"],["racao","casa"],["areia","casa"]];
+function shopGuessCat(name){ const n=" "+shopNorm(name)+" "; let best=null, bl=0;
+  for(const [w,c] of SHOP_CATP){ const k=shopNorm(w); if(n.includes(" "+k)&&k.length>bl){ best=c; bl=k.length; } }
+  if(best) return best;
+  for(const k of ["casa","frescos","fruta"]) if(SHOP_KW[k].some(w=>n.includes(shopNorm(w)))) return k; return "despensa"; }
+function shopGuessEmoji(name,cat){ const n=" "+shopNorm(name)+" "; let best=null, bl=0;
+  const cands=SHOP_EMOJI.concat(SHOP_BUILTIN.flatMap(it=>[it.name,...it.aliases].map(a=>[a,it.e])));
+  for(const [w,e] of cands){ const k=shopNorm(w); if(!k) continue; const hit=k.length<=3?n.includes(" "+k+" "):n.includes(" "+k); if(hit&&k.length>bl){ best=e; bl=k.length; } }
+  return best||shopCat(cat).e; }
 
 /* ---------- prices ---------- */
 function shopPriceGroups(){ const g=new Map(); for(const p of (shopData().prices||[])){ const k=shopNorm(p.item)+"|"+shopNorm(p.size||""); if(!g.has(k)) g.set(k,{item:p.item,size:p.size||"",rows:[]}); g.get(k).rows.push(p); } const out=[...g.values()]; for(const x of out) x.rows.sort((a,b)=>a.price-b.price||a.market.localeCompare(b.market)); return out; }
@@ -273,6 +293,14 @@ function shopListView(){ const L=shopList(), d=shopData();
   return `<section class="sh-card"><h2 class="sh-h"><span aria-hidden="true">📝</span>A nossa lista <span class="sh-meta">${L.length} ${L.length===1?"artigo":"artigos"}</span></h2>${groups}</section>
     <div class="sh-pills"><button type="button" class="sh-big" data-shsend="1"><span class="e" aria-hidden="true">✉️</span>Enviar lista</button><button type="button" class="sh-big alt" data-shadd="1"><span class="e" aria-hidden="true">➕</span>Adicionar artigo</button><button type="button" class="sh-big alt" data-shcopy="1"><span class="e" aria-hidden="true">📋</span>Copiar</button><button type="button" class="sh-big warn" data-shclear="1"><span class="e" aria-hidden="true">🧹</span>Limpar lista</button></div>
     <p class="sh-meta" style="margin:0">${d.email?`Vai para <b>${esc(d.email)}</b>. `:"Ainda sem e-mail de destino: define-o em ⚙️ Definições. "}Ao tocar em Enviar lista, a lista fica pronta para abrir no e-mail ou copiar.</p>`; }
+function shopItemPicker(pf){ const cat=shopCatalog(), listIds=new Set(shopList().map(([it])=>it.id));
+  const known=pf.item?cat.find(i=>shopSame(i.name,pf.item)):null, isNew=!!pf.isNew||(!!pf.item&&!known);
+  const opt=it=>`<option value="${esc(it.name)}" ${known&&known.id===it.id&&!isNew?"selected":""}>${it.e} ${esc(it.name)}</option>`;
+  const inList=cat.filter(i=>listIds.has(i.id));
+  const groups=[inList.length?`<optgroup label="🛒 Na lista de compras">${inList.map(opt).join("")}</optgroup>`:"",
+    ...SHOP_CATS.map(c=>{ const its=cat.filter(i=>i.cat===c.k&&!listIds.has(i.id)); return its.length?`<optgroup label="${c.e} ${esc(c.name)}">${its.sort((a,b)=>a.name.localeCompare(b.name,"pt")).map(opt).join("")}</optgroup>`:""; })].join("");
+  return `<label class="sh-lab">Artigo<select class="sh-in" id="sh-pitem" data-shpsel="1"><option value="" ${!known&&!isNew?"selected":""}>Escolhe o artigo…</option>${groups}<option value="__new" ${isNew?"selected":""}>➕ Outro artigo (escrever o nome)</option></select></label>
+    ${isNew?`<label class="sh-lab">Nome do artigo<input class="sh-in" id="sh-pitem-new" data-shpf="item" value="${esc(pf.item||"")}" placeholder="ex. Arroz agulha"></label>`:""}`; }
 function shopPricesView(){ const pf=S.shop.pf||{}, mkt=S.shop.mkt||"Mercadona", groups=shopPriceGroups(), sv=shopSavings();
   const listNames=shopList().map(([it])=>it.name);
   const inList=g=>listNames.some(n=>shopSame(n,g.item));
@@ -280,7 +308,7 @@ function shopPricesView(){ const pf=S.shop.pf||{}, mkt=S.shop.mkt||"Mercadona", 
   const names=[...new Set([...listNames,...shopCatalog().map(i=>i.name),...groups.map(g=>g.item)])];
   const form=`<section class="sh-card" style="display:grid;gap:14px"><h2 class="sh-h"><span aria-hidden="true">🏷️</span>Registar um preço</h2>
     <form id="sh-pform" class="sh-form" autocomplete="off">
-      <label class="sh-lab">Artigo<input class="sh-in" id="sh-pitem" data-shpf="item" list="sh-dl" value="${esc(pf.item||"")}" placeholder="ex. Arroz"></label>
+      ${shopItemPicker(pf)}
       <label class="sh-lab">Tamanho ou embalagem<input class="sh-in" id="sh-psize" data-shpf="size" value="${esc(pf.size||"")}" placeholder="ex. 1 kg"></label>
       <label class="sh-lab">Preço (€)<input class="sh-in" id="sh-pprice" data-shpf="price" inputmode="decimal" value="${esc(pf.price||"")}" placeholder="ex. 1,29"></label>
       <div class="sh-lab" style="grid-column:1/-1">Mercado<div class="sh-pills" role="group" aria-label="Mercado">${SHOP_MARKETS.map(m=>`<button type="button" class="sh-pill" data-shmkt="${esc(m)}" aria-pressed="${mkt===m}">${esc(m)}</button>`).join("")}</div>
@@ -322,7 +350,9 @@ function shopAddPreviewHtml(){ const name=(S.shop.aname||"").trim(); if(!name) r
   const f=shopFind(name); if(f) return `<div class="sh-verdict">${f.e} Já existe: <b>${esc(f.name)}</b> — vamos somar a quantidade.</div>`;
   const cat=S.shop.acat||shopGuessCat(name);
   return `<div class="sh-lab">Categoria <span class="sh-meta" style="font-size:15px">(escolhemos por ti — muda se quiseres)</span><div class="sh-pills">${SHOP_CATS.map(c=>`<button type="button" class="sh-pill" data-shacat="${c.k}" aria-pressed="${cat===c.k}">${c.e} ${c.name}</button>`).join("")}</div></div>
-    <div class="sh-verdict">Novo cartão: <span style="font-size:28px" aria-hidden="true">${shopGuessEmoji(name,cat)}</span> <b>${esc(shopTitle(name))}</b> em ${esc(shopCat(cat).name)}</div>`; }
+    <div class="sh-verdict">Novo cartão: <span style="font-size:28px" aria-hidden="true">${S.shop.aemoji||shopGuessEmoji(name,cat)}</span> <b>${esc(shopTitle(name))}</b> em ${esc(shopCat(cat).name)}</div>
+    <div class="sh-lab">Ícone <span class="sh-meta" style="font-size:15px">(toca noutro se este não for o certo)</span><div class="sh-pills" style="max-height:132px;overflow:auto">${SHOP_ICONS.map(e=>`<button type="button" class="sh-pill" data-shaemo="${e}" aria-pressed="${(S.shop.aemoji||shopGuessEmoji(name,cat))===e}" style="font-size:26px;padding:6px 12px">${e}</button>`).join("")}</div></div>`; }
+const SHOP_ICONS=["🥜","🍯","🥫","🧴","🍫","🍪","🥤","🧃","☕","🍵","🍞","🥖","🧀","🥩","🍗","🐟","🥚","🥛","🧈","🍎","🍌","🥦","🥕","🍅","🥬","🧅","🍚","🍝","🫒","🌶️","🧂","🍬","🍰","🍦","🍺","🍷","💧","🧻","🧼","🧽","🧹","🧺","🗑️","🪥","🍼","👶","🐶","🐱","🔋","💡","🛒"];
 
 function renderShop(resetScroll){ const el=$("shop"); if(!el) return; const main=$("sh-main"), y=main.scrollTop, t=S.shop.tab;
   $("sh-top").innerHTML=shopTop();
@@ -334,8 +364,10 @@ function renderShop(resetScroll){ const el=$("shop"); if(!el) return; const main
 
 /* ---------- actions ---------- */
 function shopInput(ev){ const t=ev.target;
+  if(t.dataset.shpsel){ if(t.value==="__new"){ S.shop.pf={...(S.shop.pf||{}),item:"",isNew:true}; renderShop(); setTimeout(()=>$("sh-pitem-new")?.focus(),40); }
+    else { S.shop.pf={...(S.shop.pf||{}),item:t.value,isNew:false}; setTimeout(()=>$("sh-psize")?.focus(),40); } return; }
   if(t.dataset.shpf){ S.shop.pf={...(S.shop.pf||{}),[t.dataset.shpf]:t.value}; return; }
-  if(t.dataset.shaname){ S.shop.aname=t.value; S.shop.acat=null; const p=$("sh-apreview"); if(p) p.innerHTML=shopAddPreviewHtml(); return; }
+  if(t.dataset.shaname){ S.shop.aname=t.value; S.shop.acat=null; S.shop.aemoji=null; const p=$("sh-apreview"); if(p) p.innerHTML=shopAddPreviewHtml(); return; }
   if(t.dataset.shaqv){ S.shop.aq=t.value; return; }
   if(t.dataset.shemail){ S.shop.emailDraft=t.value; return; } }
 async function shopClick(ev){ const t=ev.target, g=a=>t.closest(`[${a}]`); let x;
@@ -345,9 +377,10 @@ async function shopClick(ev){ const t=ev.target, g=a=>t.closest(`[${a}]`); let x
   if(x=g("data-shitem")){ const id=x.dataset.shitem, list={...(shopData().list||{})}; if(list[id]) delete list[id]; else { list[id]=1; S.shop.pop=id; } shopSave({list}); return; }
   if(x=g("data-shq")){ const [id,dd]=x.dataset.shq.split("|"); const list={...(shopData().list||{})}; const v=Math.round(((+list[id]||0)+ +dd)*100)/100; if(v<=0) delete list[id]; else list[id]=v; shopSave({list}); return; }
   if(g("data-shbasic")){ const list={...(shopData().list||{})}; let n=0; for(const it of shopCatalog().filter(i=>i.basic)) if(!list[it.id]){ list[it.id]=1; n++; } shopSave({list}); shopToast(n?`⭐ ${n} artigos da cesta básica na lista!`:"A cesta básica já está toda na lista 👍"); return; }
-  if(g("data-shadd")){ S.shop.modal="add"; S.shop.aname=""; S.shop.aq="1"; S.shop.acat=null; renderShop(); setTimeout(()=>$("sh-aname")?.focus(),40); return; }
+  if(g("data-shadd")){ S.shop.modal="add"; S.shop.aname=""; S.shop.aq="1"; S.shop.acat=null; S.shop.aemoji=null; renderShop(); setTimeout(()=>$("sh-aname")?.focus(),40); return; }
   if(g("data-shmodalx")){ S.shop.modal=null; renderShop(); return; }
   if(x=g("data-shaq")){ const i=$("sh-aqv"); const cur=parseNumber(String(i?.value||S.shop.aq||"1")); const v=Math.max(1,Math.round(((isFinite(cur)?cur:1)+ +x.dataset.shaq)*100)/100); S.shop.aq=shopQty(v); if(i) i.value=S.shop.aq; return; }
+  if(x=g("data-shaemo")){ S.shop.aemoji=x.dataset.shaemo; const p=$("sh-apreview"); if(p) p.innerHTML=shopAddPreviewHtml(); return; }
   if(x=g("data-shacat")){ S.shop.acat=x.dataset.shacat; const p=$("sh-apreview"); if(p) p.innerHTML=shopAddPreviewHtml(); return; }
   if(x=g("data-shmkt")){ S.shop.mkt=x.dataset.shmkt; renderShop(); if(S.shop.mkt==="Outro") setTimeout(()=>$("sh-pother")?.focus(),40); return; }
   if(x=g("data-shpricefor")){ S.shop.tab="prices"; S.shop.pf={item:x.dataset.shpricefor}; renderShop(true); setTimeout(()=>$("sh-psize")?.focus(),40); return; }
@@ -374,19 +407,19 @@ function shopAddSave(){ let name=(S.shop.aname||"").trim(); let q=parseNumber(St
   if(!name){ $("sh-aname")?.focus(); return; }
   const d=shopData(), list={...(d.list||{})}, found=shopFind(name);
   if(found){ list[found.id]=Math.round(((+list[found.id]||0)+q)*100)/100; S.shop.modal=null; S.shop.pop=found.id; if(S.shop.tab==="choose") S.shop.cat=found.cat; shopSave({list}); shopToast(`${found.e} ${found.name} já existia — agora são ${shopQty(list[found.id])}`); return; }
-  const cat=S.shop.acat||shopGuessCat(name); const it={id:"c-"+uidGen(),name:shopTitle(name),e:shopGuessEmoji(name,cat),cat};
+  const cat=S.shop.acat||shopGuessCat(name); const it={id:"c-"+uidGen(),name:shopTitle(name),e:S.shop.aemoji||shopGuessEmoji(name,cat),eManual:!!S.shop.aemoji,cat};
   list[it.id]=Math.round(q*100)/100; S.shop.modal=null; S.shop.pop=it.id; if(S.shop.tab==="choose") S.shop.cat=cat;
   shopSave({custom:[...(d.custom||[]),it],list}); shopToast(`${it.e} ${it.name} criado em ${shopCat(cat).name}`); }
 function shopPriceSave(){ const pf=S.shop.pf||{}; const item=(pf.item||"").trim(), size=(pf.size||"").trim();
   const market=S.shop.mkt==="Outro"?shopTitle(pf.other||""):(S.shop.mkt||"Mercadona"); const price=parseNumber(String(pf.price||"").replace(/€/g,"").trim());
-  if(!item){ shopToast("Escreve o artigo"); $("sh-pitem")?.focus(); return; }
+  if(!item){ shopToast("Escolhe o artigo da lista"); ($("sh-pitem-new")||$("sh-pitem"))?.focus(); return; }
   if(!market){ shopToast("Escreve o nome do mercado"); $("sh-pother")?.focus(); return; }
   if(!isFinite(price)||price<=0){ shopToast("Escreve o preço, ex. 1,29"); $("sh-pprice")?.focus(); return; }
   const known=shopFind(item), name=known?known.name:shopTitle(item);
   const all=shopData().prices||[]; const same=r=>shopSame(r.item,name)&&shopNorm(r.size||"")===shopNorm(size)&&shopNorm(r.market)===shopNorm(market);
   const upd=all.some(same);
   const prices=[...all.filter(r=>!same(r)),{id:uidGen(),item:name,size,market,price:Math.round(price*100)/100,date:todayStr()}];
-  S.shop.pf={item:name,size,other:pf.other};
+  S.shop.pf={item:name,size,other:pf.other,isNew:false};
   shopSave({prices}); shopToast(`${upd?"🔄 Atualizado":"💾 Guardado"}: ${name}${size?" — "+size:""} · ${market} ${fmtE(price)}`);
   setTimeout(()=>$("sh-pprice")?.focus(),60); }
 function shopText(){ const L=shopList(), out=["🛒 Lista de compras — Família Manico 360º",fmtDate(todayStr()),""];
