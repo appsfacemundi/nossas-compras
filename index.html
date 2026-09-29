@@ -396,13 +396,16 @@ function shopText(){ const L=shopList(), out=["🛒 Lista de compras — Famíli
   return out.join("\n"); }
 const SHOP_API="https://nossas-compras-api.onrender.com"; let shopSending=false, shopWhy="";
 try{ fetch(SHOP_API+"/health",{mode:"no-cors"}).catch(()=>{}); }catch(_){}
+function shopPayload(){ const L=shopList(), sv=shopSavings();
+  const cats=SHOP_CATS.map(cc=>({name:cc.name,e:cc.e,c:cc.c,s:cc.s,items:L.filter(([it])=>it.cat===cc.k).map(([it,q])=>{ const g=shopBestGroup(it.name); return {e:it.e,name:it.name,qty:shopQty(q),best:g?`Mais barato: ${g.rows[0].market} ${fmtE(g.rows[0].price)}${g.size?" · "+g.size:""}`:""}; })})).filter(cc=>cc.items.length);
+  return {date:fmtDate(todayStr()),total:L.length,cats,save:(sv.covered&&sv.save>0)?fmtE(sv.save):""}; }
 function shopSubject(){ return `Lista de compras — ${fmtDate(todayStr())}`; }
 function shopSend(){ const d=shopData(); if(!shopList().length){ shopToast("A lista está vazia"); return; }
   if(!d.email){ S.shop.tab="settings"; renderShop(true); shopToast("Primeiro escreve o e-mail de destino 📧"); setTimeout(()=>$("sh-email")?.focus(),60); return; }
   if(shopSending) return; shopSending=true; shopToast("📤 A enviar a lista… pode demorar até 1 minuto");
   let ctrl=null, tm=0; try{ ctrl=new AbortController(); tm=setTimeout(()=>ctrl.abort(),100000); }catch(_){}
   const fail=why=>{ shopWhy=why||"?"; S.shop.modal="send"; renderShop(); shopToast(why==="recipient_not_allowed"?"Este e-mail não está autorizado no servidor":"Não consegui enviar sozinho — usa os botões abaixo"); };
-  fetch(SHOP_API+"/send",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:d.email,subject:shopSubject(),text:shopText()}),signal:ctrl?ctrl.signal:undefined})
+  fetch(SHOP_API+"/send",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:d.email,subject:shopSubject(),text:shopText(),payload:shopPayload()}),signal:ctrl?ctrl.signal:undefined})
     .then(r=>r.json().then(j=>({ok:r.ok&&j&&j.ok,error:j&&j.error}),()=>({ok:false,error:"json"})))
     .then(res=>{ if(res.ok) shopToast("✅ Lista enviada para "+d.email); else fail(res.error); },()=>fail("net"))
     .then(()=>{ clearTimeout(tm); shopSending=false; }); }
