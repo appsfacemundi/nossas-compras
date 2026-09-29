@@ -16,6 +16,7 @@ const hits = []; // limite simples: 30 envios por hora
 function limited() { const now = Date.now(); while (hits.length && now - hits[0] > 3600e3) hits.shift(); if (hits.length >= 30) return true; hits.push(now); return false; }
 
 function send(res, code, obj) {
+  if (obj && obj.ok === false) console.log("reject", code, obj.error);
   res.writeHead(code, { "Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": ORIGIN, "Vary": "Origin", "Access-Control-Allow-Methods": "POST, GET, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" });
   res.end(JSON.stringify(obj));
 }
