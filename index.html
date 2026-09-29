@@ -481,7 +481,7 @@ function chooseView(){ const sec=S.sec, s=SECS[sec], pid=s.perPerson?pidOf(sec):
   else items=catalog(sec).filter(i=>i.cat===cat);
   return `${s.perPerson?peopleStrip(sec):""}<div class="sh-cats" role="group" aria-label="Categorias">${chips}</div>
     ${head}
-    <p class="sh-meta" style="margin:0;font-size:18px">👆 Toca para pôr na lista${p?` de <b>${esc(p.name)}</b>`:""} · toca outra vez para tirar</p>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><p class="sh-meta" style="margin:0;font-size:18px">👆 Toca para pôr na lista${p?` de <b>${esc(p.name)}</b>`:""} · toca outra vez para tirar</p>${n?big('data-clear="1" style="min-height:54px;font-size:18px;padding:0 20px"',"🧹",`Limpar seleção (${n})`,"warn"):""}</div>
     <div class="sh-grid">${items.map(it=>tile(sec,it,L)).join("")}<button type="button" class="sh-tile add" data-add="1"><span class="e" aria-hidden="true">➕</span><span class="t">Outro artigo</span></button></div>
     <div class="sh-bar">${big('data-tab="list"',"📝",`Ver a lista${p?" de "+esc(p.name):""}${n?` (${n})`:""}`)}</div>`; }
 function sizeSelect(pid,it){ const opts=it.sz==="c"?SIZES_C:SIZES_R, cur=sizeFor(pid,it);
