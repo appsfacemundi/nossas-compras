@@ -837,15 +837,22 @@ async function vCommand(raw){ let n=norm(raw); if(!n) return;
     if(r.it){ const L={...listMap(sec)}, had=+L[r.it.id]||0; L[r.it.id]=Math.round((had+(r.q||(had?1:(sec!=="food"&&r.it.dq)||1)))*100)/100; S.pop=r.it.id; setList(sec,L); toast(`➕ ${r.it.e} ${r.it.name} — ${qtyS(L[r.it.id])}`); return; }
     if(r.t&&r.hits.length){ vOpenSearch(sec,r.t,true); return; } }
   toast(vT(`🤷 Ouvi “${raw}” (${vLang==="en-US"?"EN":"PT"}) — tenta: “adiciona leite”`,`🤷 Heard “${raw}” (${vLang==="en-US"?"EN":"PT"}) — try: “add milk”`)); }
-function vStop(){ vLive=false; const b=$("sh-vmic"); if(b){ b.classList.remove("live"); b.textContent="🎤"; b.setAttribute("aria-label",vT("Falar","Speak")); } }
+let vWant=false, vIdle=null, vFast=0, vStart=0;
+function vStop(){ vWant=false; vLive=false; clearTimeout(vIdle); const b=$("sh-vmic"); if(b){ b.classList.remove("live"); b.textContent="🎤"; b.setAttribute("aria-label",vT("Falar","Speak")); } }
+function vBump(){ clearTimeout(vIdle); vIdle=setTimeout(()=>{ if(vWant){ try{ vRec&&vRec.stop(); }catch(_){} vStop(); toast(vT("🎤 Microfone desligado por inatividade","🎤 Microphone off after a quiet spell")); } },180000); }
+function vBegin(){ vRec=new VSR(); vRec.lang=vLang; vRec.interimResults=true; vRec.continuous=true; vRec.maxAlternatives=1;
+  vRec.onstart=()=>{ vLive=true; vStart=Date.now(); const b=$("sh-vmic"); b.classList.add("live"); b.textContent="⏹"; b.setAttribute("aria-label",vT("Parar","Stop")); };
+  vRec.onresult=ev=>{ vBump(); for(let i=ev.resultIndex;i<ev.results.length;i++){ const r=ev.results[i], t=r[0].transcript; if(r.isFinal) vCommand(t); else toast("🎤 “"+t+"”"); } };
+  vRec.onerror=ev=>{ const msg={"not-allowed":vT("Microfone bloqueado nas definições","Microphone is blocked in settings"),"service-not-allowed":vT("Liga o Ditado nas definições","Turn on Dictation in settings"),"audio-capture":vT("Microfone não encontrado","No microphone found"),"network":vT("Sem ligação ao serviço de voz","No connection to the speech service")}[ev.error];
+    if(msg){ toast("🎤 "+msg); vWant=false; } };
+  vRec.onend=()=>{ vLive=false; /* the browser closes the session after a few quiet seconds: reopen it while the mic is switched on */
+    if(!vWant){ vStop(); return; }
+    vFast=(Date.now()-vStart<700)?vFast+1:0; if(vFast>=4){ vStop(); toast(vT("🎤 O microfone não arranca. Toca outra vez","🎤 Microphone won't start. Tap again")); return; }
+    setTimeout(()=>{ if(vWant){ try{ vBegin(); vRec.start(); }catch(_){ vStop(); } } },150); };
+  }
 function vToggle(){ if(!VSR){ toast(vT("Este navegador não tem reconhecimento de voz","This browser has no speech recognition")); return; }
-  if(vLive&&vRec){ try{ vRec.stop(); }catch(_){} return; }
-  vRec=new VSR(); vRec.lang=vLang; vRec.interimResults=true; vRec.continuous=false; vRec.maxAlternatives=1; let last="";
-  vRec.onstart=()=>{ vLive=true; const b=$("sh-vmic"); b.classList.add("live"); b.textContent="⏹"; toast(vT("🎤 A ouvir… diz um comando","🎤 Listening… say a command")); };
-  vRec.onresult=ev=>{ const r=ev.results[ev.results.length-1]; last=r[0].transcript; if(r.isFinal){ const t=last; last=""; vCommand(t); } else toast("🎤 “"+last+"”"); };
-  vRec.onerror=ev=>{ const msg={"not-allowed":vT("Microfone bloqueado nas definições","Microphone is blocked in settings"),"service-not-allowed":vT("Liga o Ditado nas definições do iPad","Turn on Dictation in iPad settings"),"no-speech":vT("Não ouvi nada","Heard nothing"),"audio-capture":vT("Microfone não encontrado","No microphone found"),"network":vT("Sem ligação ao serviço de voz","No connection to the speech service")}[ev.error]; if(msg) toast("🎤 "+msg); };
-  vRec.onend=()=>{ vStop(); };
-  try{ vRec.start(); }catch(_){ vStop(); } }
+  if(vWant){ try{ vRec&&vRec.stop(); }catch(_){} vStop(); toast(vT("🎤 Microfone desligado","🎤 Microphone off")); return; }
+  vWant=true; vFast=0; vBegin(); try{ vRec.start(); vBump(); toast(vT("🎤 A ouvir… diz um comando. Toca em ⏹ para parar","🎤 Listening… say a command. Tap ⏹ to stop")); }catch(_){ vStop(); } }
 function vMount(){ if(!VSR||$("sh-voice")) return; const box=document.createElement("div"); box.id="sh-voice"; box.className="sh-voice";
   box.innerHTML=`<button type="button" id="sh-vlang" aria-label="Língua da voz / Voice language"></button><button type="button" id="sh-vmic" aria-label="Falar"></button>`; $("shop").append(box);
   const setL=()=>{ $("sh-vlang").textContent=vLang==="en-US"?"EN":"PT"; $("sh-vmic").textContent="🎤"; $("sh-vmic").setAttribute("aria-label",vT("Falar","Speak")); }; setL();
