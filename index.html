@@ -580,7 +580,7 @@ function settingsView(){ const d=D();
       <p class="sh-meta" style="margin:0">Todas as listas vão para aqui — comida, material escolar e roupa. Muda só o título do e-mail e o nome da criança.</p></section>
     <section class="sh-card" style="display:grid;gap:12px"><h2 class="sh-h"><span aria-hidden="true">👨‍👩‍👧</span>Crianças e pessoas</h2><p class="sh-meta" style="margin:0">A idade ajuda a escolher a pré-lista escolar e o tamanho da roupa.</p>${ppl}${big('data-editperson="new" style="justify-self:start"',"➕","Adicionar pessoa")}</section>
     <section class="sh-card" style="display:grid;gap:14px"><h2 class="sh-h"><span aria-hidden="true">🏪</span>Mercados e lojas</h2>${mk("food")}${mk("school")}${mk("clothes")}</section>
-    <section class="sh-card" style="display:grid;gap:12px"><h2 class="sh-h"><span aria-hidden="true">✨</span>Animação ao abrir</h2>${big('data-splash="1" style="justify-self:start"',d.splash===false?"🌙":"🎉",d.splash===false?"Desligada — tocar para ligar":"Ligada — tocar para desligar",d.splash===false?"alt":"")}</section>
+    <section class="sh-card" style="display:grid;gap:12px"><h2 class="sh-h"><span aria-hidden="true">✨</span>Animação ao abrir</h2>${big('data-splash="1" style="justify-self:start"',d.splash===false?"🌙":"🎉",d.splash===false?"Desligada — tocar para ligar":"Ligada — tocar para desligar",d.splash===false?"alt":"")}</section><section class="sh-card" style="display:grid;gap:12px"><h2 class="sh-h"><span aria-hidden="true">🎤</span>Botão do microfone</h2><p class="sh-meta" style="margin:0">O botão redondo no canto do ecrã para dar comandos por voz.</p>${big('data-vhide="1" style="justify-self:start"',d.voiceHide?"🎤":"🙈",d.voiceHide?"Mostrar o botão do microfone":"Esconder o botão do microfone")}</section>
     <section class="sh-card" style="display:grid;gap:10px"><h2 class="sh-h"><span aria-hidden="true">🧺</span>Artigos criados por nós <span class="sh-meta">${cust.length}</span></h2>
       ${cust.length?cust.map(({sec,c})=>`<div class="sh-price"><span>${c.e} ${esc(c.name)} <span class="sh-meta">· ${SECS[sec].name} · ${esc(catOf(sec,c.cat).name)}</span></span><span></span><button type="button" class="sh-x" data-delcustom="${sec}|${esc(c.id)}" aria-label="Apagar ${esc(c.name)}">✕</button></div>`).join(""):`<p class="sh-meta" style="margin:0">Ainda nenhum. Usa “Outro artigo” para criar.</p>`}</section>`; }
 
@@ -743,6 +743,7 @@ async function onClick(ev){ const t=ev.target, g=a=>t.closest(`[${a}]`); let x;
   if(g("data-copytext")){ copyText(S.m.text||"","📋 Lista copiada"); return; }
   if(g("data-clear")){ const sec=S.sec, p=SECS[sec].perPerson?person(pidOf(sec)):null; if(!(await askYesNo(`Apagar todos os artigos da lista${p?" de "+p.name:""}?`,"Sim, limpar"))) return; setList(sec,{}); toast("Lista limpa 🧹"); return; }
   if(g("data-splash")){ save({splash:D().splash===false}); return; }
+  if(g("data-vhide")){ const h=!D().voiceHide; save({voiceHide:h}); vShow(); toast(h?"🙈 Botão do microfone escondido":"🎤 Botão do microfone visível"); return; }
   if(x=g("data-delcustom")){ const [sec,id]=x.dataset.delcustom.split("|"); const c=customs(sec).find(r=>r.id===id); if(!c) return;
     if(!(await askYesNo(`Apagar o artigo “${c.name}”? Também sai das listas.`))) return; const d=D();
     if(sec==="food"){ const list={...(d.list||{})}; delete list[id]; save({custom:(d.custom||[]).filter(r=>r.id!==id),list}); }
@@ -864,7 +865,8 @@ function vToggle(){ if(!VSR){ toast(vT("Este navegador não tem reconhecimento d
   if(vWant){ try{ vRec&&vRec.stop(); }catch(_){} vStop(); toast(vT("🎤 Microfone desligado","🎤 Microphone off")); return; }
   vWant=true; vFast=0; vBegin(); try{ vRec.start(); vBump(); toast(vT("🎤 A ouvir… diz um comando. Toca em ⏹ para parar","🎤 Listening… say a command. Tap ⏹ to stop")); }catch(_){ vStop(); } }
 document.addEventListener("visibilitychange",()=>{ if(document.hidden&&vWant){ try{ vRec&&vRec.stop(); }catch(_){} vStop(); } });
-function vMount(){ if(!VSR||$("sh-voice")) return; const box=document.createElement("div"); box.id="sh-voice"; box.className="sh-voice";
+function vShow(){ const b=$("sh-voice"); if(D().voiceHide){ if(vWant){ try{ vRec&&vRec.stop(); }catch(_){} vStop(); } b&&b.remove(); } else vMount(); }
+function vMount(){ if(!VSR||$("sh-voice")||D().voiceHide) return; const box=document.createElement("div"); box.id="sh-voice"; box.className="sh-voice";
   box.innerHTML=`<button type="button" id="sh-vlang" aria-label="Língua da voz / Voice language"></button><button type="button" id="sh-vmic" aria-label="Falar"></button>`; $("shop").append(box);
   const setL=()=>{ $("sh-vlang").textContent=vLang==="en-US"?"EN":"PT"; $("sh-vmic").textContent="🎤"; $("sh-vmic").setAttribute("aria-label",vT("Falar","Speak")); }; setL();
   $("sh-vlang").addEventListener("click",()=>{ vLang=vLang==="en-US"?"pt-PT":"en-US"; try{ localStorage.setItem("nc-vlang",vLang); }catch(_){} setL(); toast(vLang==="en-US"?"🇬🇧 English: “add milk”, “open list”, “send the list”":"🇵🇹 Português: “adiciona leite”, “abre a lista”, “envia a lista”"); });
