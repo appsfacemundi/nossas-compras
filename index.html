@@ -794,7 +794,7 @@ const ENPT={milk:"leite",bread:"pao",rice:"arroz",eggs:"ovos",egg:"ovo",water:"a
 function vResolve(sec,text){ let t=norm(text).replace(/^(a|o|as|os|the|some|to the list|na lista|a lista)\s+/,""), q=null, m;
   if(m=/^(\d+|um|uma|dois|duas|tres|quatro|cinco|seis|sete|oito|nove|dez|one|two|three|four|five|six|seven|eight|nine|ten)\s+(.+)$/.exec(t)){ q=/^\d+$/.test(m[1])?+m[1]:NUMW[m[1]]; t=m[2]; }
   t=t.replace(/^(kg|quilos?|kilos?|litros?|l|pacotes?|packs?|garrafas?|latas?|bottles?|cans?|boxes?|caixas?|packets?)\s+(de\s+|of\s+)?/,"").replace(/\s+(para|a|na|to|on|in)\s+(a\s+|the\s+)?(lista|list)$/,"").trim();
-  if(vLang==="en-US"&&t) t=t.split(" ").map(w=>ENPT[w]||w).join(" ");
+  if(t) t=t.split(" ").map(w=>ENPT[w]||w).join(" ");
   let it=t?findItem(sec,t):null, hits=[];
   if(!it&&t){ const words=t.split(" ").filter(Boolean); hits=catalog(sec).filter(i=>{ const hay=norm([i.name,...(i.aliases||[]),catOf(sec,i.cat).name].join(" ")); return words.every(w=>hay.includes(w)); });
     if(hits.length===1) it=hits[0]; else { const ex=hits.filter(i=>norm(i.name)===t); if(ex.length===1) it=ex[0]; } }
@@ -802,6 +802,7 @@ function vResolve(sec,text){ let t=norm(text).replace(/^(a|o|as|os|the|some|to t
 function vOpenSearch(sec,t,many){ S.tab="choose"; S.q[sec]=t; S.modal=null; render(true);
   toast(many?vT(`Vários resultados para “${t}” — toca no certo`,`Several matches for “${t}” — tap the right one`):vT(`Não encontrei “${t}”. Toca em Juntar para criar`,`Couldn't find “${t}”. Tap Add to create it`)); }
 async function vCommand(raw){ let n=norm(raw); if(!n) return;
+  for(let i=0;i<3;i++) n=n.replace(/^(por favor|please|hey|ola|oi|claude|can you|could you|quero|queria|preciso de|preciso|i want to|i need to|i would like to|i want|vamos|agora)\s+/,"");
   const sec0=S.sec;
   /* send */
   if(hasW(n,"envia|enviar|manda|mandar|send|email")&&!hasW(n,"adiciona|add|poe|mete")){ const all=hasW(n,"todos|todas|all|everyone");
@@ -821,18 +822,21 @@ async function vCommand(raw){ let n=norm(raw); if(!n) return;
     const nm={choose:vT("Escolher","Choose"),list:vT("Lista","List"),prices:vT("Preços","Prices"),sent:vT("Enviadas","Sent"),settings:vT("Definições","Settings")}[S.tab]; toast(`✅ ${SECS[S.sec].name||""} · ${nm}`.replace(/^✅  · /,"✅ ")); return; }
   /* search */
   let m;
-  if(m=/^(procura|procurar|pesquisa|pesquisar|search|find|look for)\s+(.+)$/.exec(n)){ const t=vPerson(m[2]); S.tab="choose"; S.q[S.sec]=t; S.modal=null; render(true); toast(`🔍 ${t}`); return; }
+  if(m=/(?:^| )(procura|procurar|pesquisa|pesquisar|search|find|look for)\s+(.+)$/.exec(n)){ const t=vPerson(m[2]); S.tab="choose"; S.q[S.sec]=t; S.modal=null; render(true); toast(`🔍 ${t}`); return; }
   /* remove */
-  if(m=/^(tira|tirar|retira|retirar|remove|remover|take off|take out|delete)\s+(.+)$/.exec(n)){ const rest=vPerson(m[2]), sec=S.sec, r=vResolve(sec,rest), L={...listMap(sec)};
+  if(m=/(?:^| )(tira|tirar|retira|retirar|remove|remover|take off|take out|delete)\s+(.+)$/.exec(n)){ const rest=vPerson(m[2]), sec=S.sec, r=vResolve(sec,rest), L={...listMap(sec)};
     if(!r.it){ toast(vT(`Não encontrei “${r.t}” na lista`,`“${r.t}” not found`)); return; }
     if(!L[r.it.id]){ toast(vT(`${r.it.e} ${r.it.name} não está na lista`,`${r.it.e} ${r.it.name} isn't on the list`)); return; }
     delete L[r.it.id]; setList(sec,L); toast(vT(`➖ ${r.it.e} ${r.it.name} tirado`,`➖ ${r.it.e} ${r.it.name} removed`)); return; }
   /* add */
-  if(m=/^(adiciona|adicionar|acrescenta|acrescentar|poe|por|mete|meter|junta|juntar|compra|comprar|add|put|buy|get)\s+(.+)$/.exec(n)){ const rest=vPerson(m[2]), sec=S.sec, r=vResolve(sec,rest);
+  if(m=/(?:^| )(adiciona|adicionar|acrescenta|acrescentar|poe|por|mete|meter|junta|juntar|compra|comprar|add|put|buy|get)\s+(.+)$/.exec(n)){ const rest=vPerson(m[2]), sec=S.sec, r=vResolve(sec,rest);
     if(!r.it){ if(!r.t){ toast(vT("Diz o nome do artigo","Say the item name")); return; } vOpenSearch(sec,r.t,r.hits.length>1); return; }
     const L={...listMap(sec)}, had=+L[r.it.id]||0, add=r.q||(had?1:(sec!=="food"&&r.it.dq)||1);
     L[r.it.id]=Math.round((had+add)*100)/100; S.pop=r.it.id; setList(sec,L); toast(`➕ ${r.it.e} ${r.it.name} — ${qtyS(L[r.it.id])}`); return; }
-  toast(vT(`🤷 Não percebi: “${raw}”`,`🤷 Didn't get that: “${raw}”`)); }
+  { const sec=S.sec, pn=vPerson(n), r=vResolve(sec,pn); /* bare item name: "leite" adds it, anything else opens the search */
+    if(r.it){ const L={...listMap(sec)}, had=+L[r.it.id]||0; L[r.it.id]=Math.round((had+(r.q||(had?1:(sec!=="food"&&r.it.dq)||1)))*100)/100; S.pop=r.it.id; setList(sec,L); toast(`➕ ${r.it.e} ${r.it.name} — ${qtyS(L[r.it.id])}`); return; }
+    if(r.t&&r.hits.length){ vOpenSearch(sec,r.t,true); return; } }
+  toast(vT(`🤷 Ouvi “${raw}” (${vLang==="en-US"?"EN":"PT"}) — tenta: “adiciona leite”`,`🤷 Heard “${raw}” (${vLang==="en-US"?"EN":"PT"}) — try: “add milk”`)); }
 function vStop(){ vLive=false; const b=$("sh-vmic"); if(b){ b.classList.remove("live"); b.textContent="🎤"; b.setAttribute("aria-label",vT("Falar","Speak")); } }
 function vToggle(){ if(!VSR){ toast(vT("Este navegador não tem reconhecimento de voz","This browser has no speech recognition")); return; }
   if(vLive&&vRec){ try{ vRec.stop(); }catch(_){} return; }
