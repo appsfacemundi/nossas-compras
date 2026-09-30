@@ -109,6 +109,13 @@ body{background:var(--cream);color:var(--ink);overflow:hidden}
 .sh-verdict b{font-weight:700}
 .sh-modal{position:absolute;inset:0;z-index:20;background:rgba(31,41,55,.5);display:grid;place-items:center;padding:16px}
 .sh-modal>.sh-card{width:min(600px,100%);max-height:92vh;overflow:auto;display:grid;gap:16px;animation:shup .25s ease both}
+.sh-voice{position:absolute;right:14px;bottom:calc(120px + env(safe-area-inset-bottom,0px));z-index:25;display:flex;gap:8px;align-items:center}
+.sh-voice button{border:0;border-radius:999px;background:#1f2937;color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.25);font:700 15px var(--kid)}
+#sh-vlang{width:46px;height:46px}
+#sh-vmic{width:68px;height:68px;font-size:30px;background:linear-gradient(145deg,#ffb347,#ff5f8f)}
+#sh-vmic.live{background:#dc2626;animation:vpulse 1s infinite}
+@keyframes vpulse{50%{box-shadow:0 0 0 12px rgba(220,38,38,.2)}}
+@media (prefers-reduced-motion:reduce){#sh-vmic.live{animation:none}}
 .sh-toast{position:absolute;left:50%;bottom:calc(112px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;max-width:calc(100% - 32px);background:#1f2937;color:#fff;padding:14px 24px;border-radius:24px;font:600 19px/1.3 var(--kid);box-shadow:0 10px 26px rgba(0,0,0,.25);text-align:center}
 .sh-splash{position:absolute;inset:0;z-index:40;display:grid;place-items:center;overflow:hidden;cursor:pointer;background:radial-gradient(circle at 25% 18%,#fff3b0 0,rgba(255,243,176,0) 42%),radial-gradient(circle at 82% 82%,#ffc2d6 0,rgba(255,194,214,0) 48%),linear-gradient(160deg,#7dd3fc,#a78bfa 55%,#f9a8d4);transition:opacity .45s,transform .45s}
 .sh-splash.bye{opacity:0;transform:scale(1.06);pointer-events:none}
@@ -770,9 +777,80 @@ function onKey(e){ const t=e.target;
     const next=nx&&nx.children[col]&&nx.children[col].querySelector("input"); t.blur(); if(next){ next.focus(); next.select&&next.select(); } return; }
   if(e.key==="Escape"&&S.modal&&!document.querySelector(".sh-yn")) closeModal(); }
 
+/* ================= voice commands (PT / EN) ================= */
+const VSR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let vLang="pt-PT", vRec=null, vLive=false;
+try{ vLang=localStorage.getItem("nc-vlang")==="en-US"?"en-US":"pt-PT"; }catch(_){}
+const vT=(pt,en)=>vLang==="en-US"?en:pt;
+const NUMW={um:1,uma:1,one:1,a:1,dois:2,duas:2,two:2,tres:3,three:3,quatro:4,four:4,cinco:5,five:5,seis:6,six:6,sete:7,seven:7,oito:8,eight:8,nove:9,nine:9,dez:10,ten:10};
+const hasW=(n,re)=>new RegExp("(^| )("+re+")( |$)").test(n);
+function vPerson(n){ /* "… para a Wiklayne" / "for Wigginton": switch person, return the phrase without it */
+  const sec=S.sec; if(!SECS[sec].perPerson) return n;
+  for(const p of people()){ const f=norm(String(p.name||"").split(/\s+/)[0]); if(!f) continue;
+    const re=new RegExp("(^| )((para|pra|da|do|de|for|to)( o| a)? )?"+f+"( |$)");
+    if(re.test(n)){ S.pid[sec]=p.id; return n.replace(re," ").replace(/\s+/g," ").trim(); } }
+  return n; }
+const ENPT={milk:"leite",bread:"pao",rice:"arroz",eggs:"ovos",egg:"ovo",water:"agua",chicken:"frango",beef:"carne",meat:"carne",fish:"peixe",cheese:"queijo",butter:"manteiga",sugar:"acucar",salt:"sal",oil:"oleo",apple:"maca",apples:"macas",tomato:"tomate",tomatoes:"tomate",potato:"batata",potatoes:"batata",onion:"cebola",pasta:"massa",coffee:"cafe",juice:"sumo",pencil:"lapis",pencils:"lapis",notebook:"caderno",pen:"caneta",pens:"caneta",eraser:"borracha",ruler:"regua",backpack:"mochila",shoes:"sapatos",socks:"meias",shirt:"camisa",pants:"calcas",jacket:"casaco",underwear:"cuecas",soap:"sabonete",shampoo:"champo",toothpaste:"pasta de dentes",toilet:"papel higienico",detergent:"detergente",banana:"banana",bananas:"banana",orange:"laranja",oranges:"laranja",yogurt:"iogurte",cereal:"cereais",cookies:"bolachas",biscuits:"bolachas",flour:"farinha",beans:"feijao"};
+function vResolve(sec,text){ let t=norm(text).replace(/^(a|o|as|os|the|some|to the list|na lista|a lista)\s+/,""), q=null, m;
+  if(m=/^(\d+|um|uma|dois|duas|tres|quatro|cinco|seis|sete|oito|nove|dez|one|two|three|four|five|six|seven|eight|nine|ten)\s+(.+)$/.exec(t)){ q=/^\d+$/.test(m[1])?+m[1]:NUMW[m[1]]; t=m[2]; }
+  t=t.replace(/^(kg|quilos?|kilos?|litros?|l|pacotes?|packs?|garrafas?|latas?|bottles?|cans?|boxes?|caixas?|packets?)\s+(de\s+|of\s+)?/,"").replace(/\s+(para|a|na|to|on|in)\s+(a\s+|the\s+)?(lista|list)$/,"").trim();
+  if(vLang==="en-US"&&t) t=t.split(" ").map(w=>ENPT[w]||w).join(" ");
+  let it=t?findItem(sec,t):null, hits=[];
+  if(!it&&t){ const words=t.split(" ").filter(Boolean); hits=catalog(sec).filter(i=>{ const hay=norm([i.name,...(i.aliases||[]),catOf(sec,i.cat).name].join(" ")); return words.every(w=>hay.includes(w)); });
+    if(hits.length===1) it=hits[0]; else { const ex=hits.filter(i=>norm(i.name)===t); if(ex.length===1) it=ex[0]; } }
+  return {it,q,t,hits}; }
+function vOpenSearch(sec,t,many){ S.tab="choose"; S.q[sec]=t; S.modal=null; render(true);
+  toast(many?vT(`Vários resultados para “${t}” — toca no certo`,`Several matches for “${t}” — tap the right one`):vT(`Não encontrei “${t}”. Toca em Juntar para criar`,`Couldn't find “${t}”. Tap Add to create it`)); }
+async function vCommand(raw){ let n=norm(raw); if(!n) return;
+  const sec0=S.sec;
+  /* send */
+  if(hasW(n,"envia|enviar|manda|mandar|send|email")&&!hasW(n,"adiciona|add|poe|mete")){ const all=hasW(n,"todos|todas|all|everyone");
+    n=vPerson(n); S.tab="list"; render(true);
+    if(!(await askYesNo(vT(`Enviar ${all?"as listas de todos":"esta lista"} por e-mail?`,`Email ${all?"everyone's lists":"this list"}?`),vT("Sim, enviar","Yes, send")))) return;
+    sendLists(all); return; }
+  /* clear */
+  if(hasW(n,"limpa|limpar|esvazia|esvaziar|clear|empty")){ n=vPerson(n); const sec=S.sec, p=SECS[sec].perPerson?person(pidOf(sec)):null;
+    if(!(await askYesNo(vT(`Apagar todos os artigos da lista${p?" de "+p.name:""}?`,`Delete every item on the list${p?" of "+p.name:""}?`),vT("Sim, limpar","Yes, clear")))) return;
+    setList(sec,{}); toast(vT("Lista limpa 🧹","List cleared 🧹")); return; }
+  /* navigate */
+  if(hasW(n,"abre|abrir|mostra|mostrar|vai|ir|open|show|go|goto")){ let sec=null,tab=null;
+    if(hasW(n,"comida|supermercado|compras|food|groceries|grocery")) sec="food"; else if(hasW(n,"escola|escolar|school")) sec="school"; else if(hasW(n,"roupa|roupas|vestuario|clothes|clothing")) sec="clothes";
+    if(hasW(n,"lista|list")) tab="list"; else if(hasW(n,"precos|preco|prices|price")) tab="prices"; else if(hasW(n,"escolher|choose")) tab="choose"; else if(hasW(n,"enviadas|enviados|sent")) tab="sent"; else if(hasW(n,"definicoes|configuracoes|settings")) tab="settings";
+    if(!sec&&!tab){ toast(vT(`🤷 Abrir o quê? “${raw}”`,`🤷 Open what? “${raw}”`)); return; }
+    if(sec) S.sec=sec; S.tab=tab||(sec?"choose":S.tab); S.psq=""; S.modal=null; vPerson(n); render(true);
+    const nm={choose:vT("Escolher","Choose"),list:vT("Lista","List"),prices:vT("Preços","Prices"),sent:vT("Enviadas","Sent"),settings:vT("Definições","Settings")}[S.tab]; toast(`✅ ${SECS[S.sec].name||""} · ${nm}`.replace(/^✅  · /,"✅ ")); return; }
+  /* search */
+  let m;
+  if(m=/^(procura|procurar|pesquisa|pesquisar|search|find|look for)\s+(.+)$/.exec(n)){ const t=vPerson(m[2]); S.tab="choose"; S.q[S.sec]=t; S.modal=null; render(true); toast(`🔍 ${t}`); return; }
+  /* remove */
+  if(m=/^(tira|tirar|retira|retirar|remove|remover|take off|take out|delete)\s+(.+)$/.exec(n)){ const rest=vPerson(m[2]), sec=S.sec, r=vResolve(sec,rest), L={...listMap(sec)};
+    if(!r.it){ toast(vT(`Não encontrei “${r.t}” na lista`,`“${r.t}” not found`)); return; }
+    if(!L[r.it.id]){ toast(vT(`${r.it.e} ${r.it.name} não está na lista`,`${r.it.e} ${r.it.name} isn't on the list`)); return; }
+    delete L[r.it.id]; setList(sec,L); toast(vT(`➖ ${r.it.e} ${r.it.name} tirado`,`➖ ${r.it.e} ${r.it.name} removed`)); return; }
+  /* add */
+  if(m=/^(adiciona|adicionar|acrescenta|acrescentar|poe|por|mete|meter|junta|juntar|compra|comprar|add|put|buy|get)\s+(.+)$/.exec(n)){ const rest=vPerson(m[2]), sec=S.sec, r=vResolve(sec,rest);
+    if(!r.it){ if(!r.t){ toast(vT("Diz o nome do artigo","Say the item name")); return; } vOpenSearch(sec,r.t,r.hits.length>1); return; }
+    const L={...listMap(sec)}, had=+L[r.it.id]||0, add=r.q||(had?1:(sec!=="food"&&r.it.dq)||1);
+    L[r.it.id]=Math.round((had+add)*100)/100; S.pop=r.it.id; setList(sec,L); toast(`➕ ${r.it.e} ${r.it.name} — ${qtyS(L[r.it.id])}`); return; }
+  toast(vT(`🤷 Não percebi: “${raw}”`,`🤷 Didn't get that: “${raw}”`)); }
+function vStop(){ vLive=false; const b=$("sh-vmic"); if(b){ b.classList.remove("live"); b.textContent="🎤"; b.setAttribute("aria-label",vT("Falar","Speak")); } }
+function vToggle(){ if(!VSR){ toast(vT("Este navegador não tem reconhecimento de voz","This browser has no speech recognition")); return; }
+  if(vLive&&vRec){ try{ vRec.stop(); }catch(_){} return; }
+  vRec=new VSR(); vRec.lang=vLang; vRec.interimResults=true; vRec.continuous=false; vRec.maxAlternatives=1; let last="";
+  vRec.onstart=()=>{ vLive=true; const b=$("sh-vmic"); b.classList.add("live"); b.textContent="⏹"; toast(vT("🎤 A ouvir… diz um comando","🎤 Listening… say a command")); };
+  vRec.onresult=ev=>{ const r=ev.results[ev.results.length-1]; last=r[0].transcript; if(r.isFinal){ const t=last; last=""; vCommand(t); } else toast("🎤 “"+last+"”"); };
+  vRec.onerror=ev=>{ const msg={"not-allowed":vT("Microfone bloqueado nas definições","Microphone is blocked in settings"),"service-not-allowed":vT("Liga o Ditado nas definições do iPad","Turn on Dictation in iPad settings"),"no-speech":vT("Não ouvi nada","Heard nothing"),"audio-capture":vT("Microfone não encontrado","No microphone found"),"network":vT("Sem ligação ao serviço de voz","No connection to the speech service")}[ev.error]; if(msg) toast("🎤 "+msg); };
+  vRec.onend=()=>{ vStop(); };
+  try{ vRec.start(); }catch(_){ vStop(); } }
+function vMount(){ if(!VSR||$("sh-voice")) return; const box=document.createElement("div"); box.id="sh-voice"; box.className="sh-voice";
+  box.innerHTML=`<button type="button" id="sh-vlang" aria-label="Língua da voz / Voice language"></button><button type="button" id="sh-vmic" aria-label="Falar"></button>`; $("shop").append(box);
+  const setL=()=>{ $("sh-vlang").textContent=vLang==="en-US"?"EN":"PT"; $("sh-vmic").textContent="🎤"; $("sh-vmic").setAttribute("aria-label",vT("Falar","Speak")); }; setL();
+  $("sh-vlang").addEventListener("click",()=>{ vLang=vLang==="en-US"?"pt-PT":"en-US"; try{ localStorage.setItem("nc-vlang",vLang); }catch(_){} setL(); toast(vLang==="en-US"?"🇬🇧 English: “add milk”, “open list”, “send the list”":"🇵🇹 Português: “adiciona leite”, “abre a lista”, “envia a lista”"); });
+  $("sh-vmic").addEventListener("click",vToggle); }
+
 /* ================= boot ================= */
 (function boot(){ const el=$("shop"); el.addEventListener("click",onClick); el.addEventListener("input",onInput); el.addEventListener("change",onChange); el.addEventListener("submit",onSubmit); document.addEventListener("keydown",onKey);
-  D(); render(true); if(D().splash!==false) splash();
+  D(); render(true); vMount(); if(D().splash!==false) splash();
   try{ const cv=document.createElement("canvas"); cv.width=cv.height=180; const g=cv.getContext("2d"); const gr=g.createLinearGradient(0,0,180,180); gr.addColorStop(0,"#ffb347"); gr.addColorStop(1,"#ff5f8f");
     g.fillStyle=gr; g.fillRect(0,0,180,180); g.font="110px sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText("🛒",90,98);
     const url=cv.toDataURL("image/png"); for(const rel of ["apple-touch-icon","icon"]){ const l=document.createElement("link"); l.rel=rel; l.href=url; document.head.append(l); }
