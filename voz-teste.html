@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Teste de voz · Voice test</title>
+<style>
+:root{--bg:#f6f7f5;--fg:#16211f;--mut:#5d6b68;--card:#fff;--line:#d9dfdc;--acc:#0b7f79;--acc-fg:#fff;--ok:#0a7d3c;--bad:#b3261e;--warn:#9a6700}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1716;--fg:#e8efed;--mut:#9fb0ac;--card:#172322;--line:#2a3a38;--acc:#3cc7bd;--acc-fg:#06201f;--ok:#4cd98a;--bad:#ff8a80;--warn:#f0c14b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:20px 16px 48px}
+main{max-width:640px;margin:0 auto;display:grid;gap:16px}
+h1{font-size:24px;margin:0}
+p{margin:0;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:10px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-weight:650;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--fg);padding:12px 16px;min-height:48px;cursor:pointer}
+button.on{background:var(--acc);color:var(--acc-fg);border-color:var(--acc)}
+#mic{width:100%;font-size:20px;padding:18px;background:var(--acc);color:var(--acc-fg);border-color:var(--acc)}
+#mic.live{background:var(--bad);border-color:var(--bad);color:#fff}
+table{width:100%;border-collapse:collapse}
+td{padding:6px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:last-child{text-align:right;font-weight:650}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+#out{font-size:22px;min-height:1.4em;word-break:break-word}
+#act{font-weight:700}
+.log{font:13px/1.4 ui-monospace,Menlo,monospace;color:var(--mut);white-space:pre-wrap;max-height:160px;overflow:auto}
+small{color:var(--mut)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Teste de voz · Voice test</h1>
+  <p>Carregue no botão, deixe o microfone e diga uma frase. / Tap the button, allow the microphone and say a phrase.</p>
+
+  <section class="card">
+    <div class="row" role="group" aria-label="Língua / Language">
+      <button id="lpt" class="on" type="button">Português</button>
+      <button id="len" type="button">English</button>
+    </div>
+    <button id="mic" type="button">🎤 Falar · Speak</button>
+    <div id="out" aria-live="polite">—</div>
+    <div id="act"></div>
+  </section>
+
+  <section class="card">
+    <b>Comandos de exemplo · Example commands</b>
+    <table>
+      <tr><td><span lang="pt">“adiciona leite” · “abre a lista” · “abre preços” · “envia a lista” · “limpa”</span></td><td>PT</td></tr>
+      <tr><td><span lang="en">“add milk” · “open the list” · “open prices” · “send the list” · “clear”</span></td><td>EN</td></tr>
+    </table>
+    <small>Só demonstra o reconhecimento; não altera nenhuma lista. / Recognition demo only; it changes no list.</small>
+  </section>
+
+  <section class="card">
+    <b>Este aparelho · This device</b>
+    <table id="chk"></table>
+    <div class="log" id="log"></div>
+  </section>
+</main>
+<script>
+(function(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  var lang="pt-PT", rec=null, live=false;
+  var $=function(i){return document.getElementById(i)};
+  var logEl=$("log");
+  function log(m){ logEl.textContent=(new Date().toLocaleTimeString()+" "+m+"\n")+logEl.textContent; }
+
+  function row(k,v,cls){ var tr=document.createElement("tr"); tr.innerHTML="<td></td><td></td>"; tr.cells[0].textContent=k; tr.cells[1].textContent=v; tr.cells[1].className=cls||""; $("chk").appendChild(tr); return tr; }
+  row("Ligação segura (https) · Secure page", window.isSecureContext?"sim · yes":"não · no", window.isSecureContext?"ok":"bad");
+  row("Reconhecimento de voz · Speech recognition", SR?"disponível · available":"indisponível · unavailable", SR?"ok":"bad");
+  row("Leitura em voz alta · Speech output", ("speechSynthesis" in window)?"disponível · available":"indisponível · unavailable", ("speechSynthesis" in window)?"ok":"warn");
+  var micRow=row("Microfone · Microphone","a verificar… · checking…","warn");
+  try{
+    if(navigator.permissions&&navigator.permissions.query){
+      navigator.permissions.query({name:"microphone"}).then(function(p){
+        var m={granted:["permitido · allowed","ok"],prompt:["vai pedir · will ask","warn"],denied:["bloqueado · blocked","bad"]}[p.state]||[p.state,"warn"];
+        micRow.cells[1].textContent=m[0]; micRow.cells[1].className=m[1];
+      }).catch(function(){ micRow.cells[1].textContent="desconhecido · unknown"; });
+    } else micRow.cells[1].textContent="desconhecido · unknown";
+  }catch(e){ micRow.cells[1].textContent="desconhecido · unknown"; }
+  log(navigator.userAgent);
+
+  function setLang(l){ lang=l; $("lpt").classList.toggle("on",l==="pt-PT"); $("len").classList.toggle("on",l==="en-US"); log("língua/lang "+l); }
+  $("lpt").onclick=function(){setLang("pt-PT")};
+  $("len").onclick=function(){setLang("en-US")};
+
+  function norm(t){ return t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[.,!?]/g,"").trim(); }
+  function parse(t){
+    var n=norm(t), m;
+    if(m=n.match(/^(adiciona|adicionar|poe|mete|acrescenta|add|put)\s+(?:a |o |as |os |um |uma |some |the )?(.+)$/)) return "➕ adicionar à lista · add to list: "+m[2];
+    if(/(abre|abrir|mostra|open|show|go to|vai para).*(lista|list)/.test(n)) return "📋 abrir Lista · open List";
+    if(/(abre|abrir|mostra|open|show|go to|vai para).*(preco|price)/.test(n)) return "💶 abrir Preços · open Prices";
+    if(/(abre|abrir|mostra|open|show|go to|vai para).*(escolher|choose|pick)/.test(n)) return "🛒 abrir Escolher · open Choose";
+    if(/(abre|abrir|mostra|open|show|go to|vai para).*(enviadas|sent)/.test(n)) return "📨 abrir Enviadas · open Sent";
+    if(/(envia|enviar|manda|send)/.test(n)) return "📤 enviar a lista · send the list";
+    if(/(limpa|limpar|apaga|clear|reset)/.test(n)) return "🧹 limpar seleção · clear selection";
+    return "";
+  }
+
+  function stop(){ live=false; $("mic").classList.remove("live"); $("mic").textContent="🎤 Falar · Speak"; }
+  $("mic").onclick=function(){
+    if(!SR){ $("out").textContent="Este navegador não tem reconhecimento de voz. / This browser has no speech recognition."; log("sem SpeechRecognition"); return; }
+    if(live&&rec){ rec.stop(); return; }
+    rec=new SR(); rec.lang=lang; rec.interimResults=true; rec.continuous=false; rec.maxAlternatives=1;
+    rec.onstart=function(){ live=true; $("mic").classList.add("live"); $("mic").textContent="⏹ A ouvir… · Listening…"; $("out").textContent="…"; $("act").textContent=""; log("start "+rec.lang); };
+    rec.onaudiostart=function(){ log("audio a entrar · audio started"); };
+    rec.onspeechstart=function(){ log("voz detetada · speech detected"); };
+    rec.onresult=function(ev){
+      var r=ev.results[ev.results.length-1], t=r[0].transcript;
+      $("out").textContent=t;
+      if(r.isFinal){ var a=parse(t); $("act").textContent=a?("→ "+a):"→ (sem comando reconhecido · no command matched)"; log("final: "+t+" ["+Math.round((r[0].confidence||0)*100)+"%]"); }
+    };
+    rec.onerror=function(ev){
+      var msg={"not-allowed":"Microfone bloqueado. Permita nas definições do navegador. / Microphone blocked. Allow it in browser settings.","service-not-allowed":"O serviço de voz do aparelho está desligado (Ditado / Siri). / Speech service is off (Dictation / Siri).","no-speech":"Não ouvi nada. Tente outra vez. / Heard nothing. Try again.","audio-capture":"Não encontrei microfone. / No microphone found.","network":"Sem ligação ao serviço de voz. / No connection to the speech service.","language-not-supported":"Língua não suportada. / Language not supported."}[ev.error]||("Erro · Error: "+ev.error);
+      $("out").textContent=msg; log("erro/error "+ev.error);
+    };
+    rec.onend=function(){ stop(); log("fim · end"); };
+    try{ rec.start(); }catch(e){ log("start falhou: "+e.message); stop(); }
+  };
+})();
+</script>
+</body>
+</html>
