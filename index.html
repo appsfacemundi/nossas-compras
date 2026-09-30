@@ -801,7 +801,17 @@ function vResolve(sec,text){ let t=norm(text).replace(/^(a|o|as|os|the|some|to t
   return {it,q,t,hits}; }
 function vOpenSearch(sec,t,many){ S.tab="choose"; S.q[sec]=t; S.modal=null; render(true);
   toast(many?vT(`Vários resultados para “${t}” — toca no certo`,`Several matches for “${t}” — tap the right one`):vT(`Não encontrei “${t}”. Toca em Juntar para criar`,`Couldn't find “${t}”. Tap Add to create it`)); }
+let vLastT="", vLastAt=0;
 async function vCommand(raw){ let n=norm(raw); if(!n) return;
+  if(n===vLastT&&Date.now()-vLastAt<1500) return; vLastT=n; vLastAt=Date.now(); /* Safari can repeat the same final phrase */
+  /* a "Tem a certeza?" box is open: answer it by voice */
+  const yn=document.querySelector(".sh-yn");
+  if(yn){ const yes=/(^| )(sim|yes|yeah|yep|ok|okay|confirmo|confirma|confirmar|pode|podes|claro|apaga|apagar|limpa|limpar|envia|enviar|send|clear|delete)( |$)/.test(n), no=/(^| )(nao|no|nope|cancela|cancelar|cancel|para|parar|stop|nunca)( |$)/.test(n);
+    if(no){ yn.querySelector("#yn-no")?.click(); toast(vT("❌ Cancelado","❌ Cancelled")); return; }
+    if(yes){ yn.querySelector("#yn-yes")?.click(); return; }
+    toast(vT(`🎤 Diz “sim” ou “não” (ouvi “${raw}”)`,`🎤 Say “yes” or “no” (heard “${raw}”)`)); return; }
+  if(/(^| )(fecha|fechar|cancela|cancelar|close|cancel)( |$)/.test(n)&&S.modal){ closeModal(); toast(vT("Fechado","Closed")); return; }
+  if(/^(ajuda|help|comandos|commands|o que posso dizer|what can i say)$/.test(n)){ toast(vT("Diz: “adiciona leite”, “tira leite”, “abre a lista”, “abre preços”, “abre escola”, “procura arroz”, “envia a lista”, “limpa”","Say: “add milk”, “remove milk”, “open the list”, “open prices”, “open school”, “search rice”, “send the list”, “clear”")); return; }
   for(let i=0;i<3;i++) n=n.replace(/^(por favor|please|hey|ola|oi|claude|can you|could you|quero|queria|preciso de|preciso|i want to|i need to|i would like to|i want|vamos|agora)\s+/,"");
   const sec0=S.sec;
   /* send */
@@ -853,6 +863,7 @@ function vBegin(){ vRec=new VSR(); vRec.lang=vLang; vRec.interimResults=true; vR
 function vToggle(){ if(!VSR){ toast(vT("Este navegador não tem reconhecimento de voz","This browser has no speech recognition")); return; }
   if(vWant){ try{ vRec&&vRec.stop(); }catch(_){} vStop(); toast(vT("🎤 Microfone desligado","🎤 Microphone off")); return; }
   vWant=true; vFast=0; vBegin(); try{ vRec.start(); vBump(); toast(vT("🎤 A ouvir… diz um comando. Toca em ⏹ para parar","🎤 Listening… say a command. Tap ⏹ to stop")); }catch(_){ vStop(); } }
+document.addEventListener("visibilitychange",()=>{ if(document.hidden&&vWant){ try{ vRec&&vRec.stop(); }catch(_){} vStop(); } });
 function vMount(){ if(!VSR||$("sh-voice")) return; const box=document.createElement("div"); box.id="sh-voice"; box.className="sh-voice";
   box.innerHTML=`<button type="button" id="sh-vlang" aria-label="Língua da voz / Voice language"></button><button type="button" id="sh-vmic" aria-label="Falar"></button>`; $("shop").append(box);
   const setL=()=>{ $("sh-vlang").textContent=vLang==="en-US"?"EN":"PT"; $("sh-vmic").textContent="🎤"; $("sh-vmic").setAttribute("aria-label",vT("Falar","Speak")); }; setL();
